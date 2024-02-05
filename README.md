@@ -102,26 +102,6 @@ Il vous est possible de quantizer et compiler votre propre modèle. Pour cela, v
 ./run_model your_model.h5
 ```
 
-
-# How to install and run the model on ZCU102
-
-1. Export the folder `target_zcu102` on the ZCU102 :
-
-    ```bash
-    scp -r target_zcu102/ root@192.168.1.64:/home/petalinux/
-    ```
-2. Run the script `run_target.sh`:
-    ```bash
-    ./run_target
-    ```
-
-# How to train a model, convert it to onnx, then to tensil and finally run it on the PYNQ
-## Schema of the process
-![plot](./static/process.png)
-
-
-
-
 # Possible pitfalls :
     - ...
     - ...
