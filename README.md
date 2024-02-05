@@ -1,3 +1,5 @@
+![Logo DeepZoom](logo.png)
+
 # DeepZoom : a super resolution AI on ZCU102
 
 The DeepZoom project is an initiative by Airbus Defense and Space, proposed to students at ENSEEIHT as part of an Industrial Study Project (BEI). The objective of this project is to develop an embedded application for satellite image super-resolution using AI techniques. Ultimately, the application should be capable of being deployed on an already-orbiting satellite. The system is a sandbox (thus reconfigurable) and is equipped with an optical sensor capable of capturing RGB images with a resolution of 150 million pixels (14192x10640).
