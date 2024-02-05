@@ -61,7 +61,7 @@ Une fois que le modèle est entrainé, il faut d'abord le quantizer et le compil
     REPOSITORY                        TAG      IMAGE ID       CREATED         SIZE
     xilinx/vitis-ai-tensorflow2-cpu   latest   e1501ac96fd0   10 days ago     6.75GB
     ```
-4. You will need to install some missing packages and libraries into the Vitis AI container. Copy the file `setup_env.sh` into the `Vitis-AI` folder
+4. You will need to install some missing packages and libraries into the Vitis AI container. Copy the file `setup_docker_env.sh` into the `Vitis-AI` folder
     ```bash
     cp DeepZoom/flow-vitis-ai/setup_env.sh Vitis-AI/
     ```
@@ -72,14 +72,14 @@ Une fois que le modèle est entrainé, il faut d'abord le quantizer et le compil
     ```
 6. Once you are into the Vitis AI container, execute the following script to install some missing packages and libraries:
     ```bash
-    ./setup_env.sh
+    ./setup_docker_env.sh
     ```
 6. Voilà! You are ready to play with Vitis AI tools.
 
-***WARNING**: you will need to execute the `setup_env.sh` script each time you launch Vitis AI container.*
+***WARNING**: you will need to execute the `setup_docker_env.sh` script each time you launch Vitis AI container.*
 
 ## Run the Vitis-AI flow
-1. Launch the Vitis AI container. Be careful to execute `setup_env.sh` script.
+1. Launch the Vitis AI container. Be careful to execute `setup_docker_env.sh` script.
 2. Launch the flow :
     ```bash
     cd flow-vitis-ai/
