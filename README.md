@@ -1,4 +1,4 @@
-![Logo DeepZoom](logo.png)
+![Logo DeepZoom](./doc/logo.png)
 
 # DeepZoom : a super resolution AI on ZCU102
 
@@ -39,7 +39,7 @@ python3 generate_dataset.py --images path-to-your-images
 
 Une fois que le modèle est entrainé, il faut d'abord le quantizer et le compiler avec les outils de Vitis AI. Nous utilisons la version 3.0. Voici un schéma représentant notre flow Vitis AI:
 
-![Flow Vitis AI](doc/flow-vitis-ai.png)
+![Flow Vitis AI](./doc/flow-vitis-ai.png)
 
 ## Requirements
 
