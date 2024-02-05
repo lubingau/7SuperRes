@@ -7,7 +7,7 @@ The DeepZoom project is an initiative by Airbus Defense and Space, proposed to s
 
 # How to train the model
 
-Téléchargez notre dataset ici (extrait de [Cars Overhead With Context](https://gdo152.llnl.gov/cowc/)). Notre modèle est un [FSRCNN](https://arxiv.org/abs/1608.00367) dont les paramètres sont les suivants :
+Téléchargez notre dataset ici (extrait de [Cars Overhead With Context](https://gdo152.llnl.gov/cowc/)). Notre modèle est un FSRCNN adapté de "*[Accelerating the Super-Resolution Convolutional Neural Network](https://arxiv.org/abs/1608.00367)*" dont les paramètres sont les suivants :
 
 
 Pour entrainer notre modèle, veuillez exécuter ce script python :
@@ -55,7 +55,7 @@ Une fois que le modèle est entrainé, il faut d'abord le quantizer et le compil
     cd docker/
     sudo ./docker_build.sh -t cpu -f tf2
     ```
-    This operation might take some time. If you want to use gpu instead of cpu, you can but we haven't tried it
+    This operation might take some time (~20 minutes). If you want to use gpu instead of cpu, you can but we haven't tried it
 3. Once the process is finished, with the command ```sudo docker images``` you should see something like this:
     ```text
     REPOSITORY                        TAG      IMAGE ID       CREATED         SIZE
@@ -102,7 +102,27 @@ Il vous est possible de quantizer et compiler votre propre modèle. Pour cela, v
 ./run_model your_model.h5
 ```
 
+## Run on the ZCU102
+
+1. Flash [ZCU102 DPU image](https://www.xilinx.com/member/forms/download/design-license-xef.html?filename=xilinx-zcu102-dpu-v2022.2-v3.0.0.img.gz) on the SD card with balenaEtcher for example. Then, insert the SD card into the ZCU102, and switch on the board. Be careful to put correctly boot mode switches on the ZCU102 : 1000.
+
+2. When you power on the ZCU102, a red led appear, and then disappear when boot is done. You can connect to the board with UART or ethernet. Prefer the ethernet connection for file transfer, otherwise you will have to remove the SD card.
+
+3. Copy the `target_zcu102` folder from the host PC to the ZCU102:
+```bash
+cd Vitis-AI/flow-vitis-ai/
+scp -r target_zcu102 root@192.168.1.64:home/petalinux/
+```
+
+4. On the ZCU102, execute the following script **as root** to run the model:
+``` bash
+cd target_zcu102/
+./run_target
+```
+***Nota bene 1**: if you want to run your model, execute `./run_target your-model`, or modify the code.*
+
+***Nota bene 2**: if you don't want to build de C++ application each time, execute `./run_target --no-compile`, or modify the code.*
+
 # Possible pitfalls :
-    - ...
-    - ...
-    - ...
+- Failed to load xmodel subgraph: verify that there is only one subgraph. See [Run the Vitis AI flow](#Run-the-Vitis-AI-flow).
+- Failed to build C++ app: log as a root.
