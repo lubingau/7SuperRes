@@ -92,7 +92,7 @@ def main(args):
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dataset_path', default="dp_dataset/train/", type=str, help='Path to the dataset')
+    parser.add_argument('--dataset_path', default="dz_dataset/train/", type=str, help='Path to the dataset')
     parser.add_argument('--params_path', default="training/training_parameters.json", type=str, help='Path to the training parameters json')
 
     args = parser.parse_args()
