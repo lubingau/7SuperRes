@@ -35,31 +35,30 @@ pip3 install -r requirements.txt
 
 Our model is an FSRCNN adapted from "*[Accelerating the Super-Resolution Convolutional Neural Network](https://arxiv.org/abs/1608.00367)*" with the following parameters:
 
----
+
 | D  | S  | M |
 |----|----|---|
-| 56 | 16 | 4 |
----
+| 56 | 16 | 6 |
 
+<br>
 To train our model, please run this Python script:
+
 ```bash
-python3 train.py --dataset path-to-dataset
+python3 FSRCNN_train.py
 ```
 
 Here are all options :
 ```bash
 options:
-  -h, --help            show this help message and exit
-  --dataset PATH
-                        path the dataset
-  ... ... ... ...
-
+  --dataset_path DATASET_PATH   Path to the dataset
+  --params_path PARAMS_PATH     Path to the training parameters in the .json file
 ```
+
 ## How to train with your own dataset
 
 We provide a Python script that allows you to create your dataset with your own images:
 ```bash
-python3 generate_dataset.py --input_dir path-to-your-images
+python3 create_dataset.py --input_dir path-to-your-images
 ```
 
 Here are all options :
@@ -160,7 +159,7 @@ You can quantize and compile your own model. To do this, please copy your traine
 
 ## Run on the ZCU102
 
-1. Flash [ZCU102 DPU image](https://www.xilinx.com/member/forms/download/design-license-xef.html?filename=xilinx-zcu102-dpu-v2022.2-v3.0.0.img.gz) on the SD card with balenaEtcher for example. Then, insert the SD card into the ZCU102, and switch on the board. Be careful to put correctly boot mode switches on the ZCU102 : 1000.
+1. Flash [ZCU102 DPU image](https://www.xilinx.com/member/forms/download/design-license-xef.html?filename=xilinx-zcu102-dpu-v2022.2-v3.0.0.img.gz) (or download it [here](https://drive.google.com/file/d/17IEiRW8wZ8UVISNuKscxq4__2BXgZSsM/view?usp=sharing)) on the SD card with balenaEtcher for example. Then, insert the SD card into the ZCU102, and switch on the board. Be careful to put correctly boot mode switches on the ZCU102 : 1000.
 
 2. When you power on the ZCU102, a red led appear, and then disappear when boot is done. You can connect to the board with UART or ethernet. Prefer the ethernet connection for file transfer, otherwise you will have to remove the SD card.
 
@@ -186,4 +185,4 @@ cd target_zcu102/
 # Possible pitfalls :
 - Failed to load xmodel subgraph: verify that there is only one subgraph. See [Run the Vitis AI flow](#Run-the-Vitis-AI-flow).
 - Failed to build C++ app: log as a root.
-- Failed to launch a script: make the file executable.
+- Failed to launch a script: make the file executable with `chmod +x <script>`.
