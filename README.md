@@ -48,8 +48,9 @@ Une fois que le modèle est entrainé, il faut d'abord le quantizer et le compil
 - Docker
 
 ## Installation
-1. Clone or download the [Vitis AI](https://github.com/Xilinx/Vitis-AI/tree/3.0) repository. ***WARNING** : if you clone the repo, be careful to use the 3.0 branch*.
+1. Clone or download the [Vitis AI 3.0](https://github.com/Xilinx/Vitis-AI/tree/3.0) repository. ***WARNING** : be careful to use the 3.0 version*.
     ```bash
+    git clone https://github.com/Xilinx/Vitis-AI
     git checkout -b 3.0 origin/3.0
     ```
 2. Install Vitis-AI on your PC
