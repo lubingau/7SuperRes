@@ -35,7 +35,6 @@ pip3 install -r requirements.txt
 
 Our model is an FSRCNN adapted from "*[Accelerating the Super-Resolution Convolutional Neural Network](https://arxiv.org/abs/1608.00367)*" with the following parameters:
 
-
 | D  | S  | M |
 |----|----|---|
 | 56 | 16 | 6 |
@@ -74,13 +73,12 @@ options:
   --nb_img NB_IMG             Number of images to process, -1 for full dataset
 ```
 <br>
-<br>
 
 # How to compile the model with Vitis-AI
 
 Once the model is trained, it needs to be quantized and compiled with Vitis AI tools. We use version 3.0. Here is a schema representing our Vitis AI flow:
 
-![Flow Vitis AI](./doc/flow-vitis-ai.png)
+![Flow Vitis AI](./doc/dz_vai_flow.png)
 
 ## Requirements
 - Ubuntu 22.04 host PC
@@ -108,14 +106,13 @@ Once the model is trained, it needs to be quantized and compiled with Vitis AI t
 4. You will need to install some missing packages and libraries into the Vitis AI container. Copy the file `setup_docker_env.sh` into the `Vitis-AI` folder
     ```bash
     cd DeepZoom
-    cp setup_docker_env.sh Vitis-AI/
-    cp -r pkgs/ Vitis-AI/src/vai_quantizer/vai_q_tensorflow2.x/
+    cp setup_docker_env.sh ../Vitis-AI/
+    cp -r pkgs/ ../Vitis-AI/src/vai_quantizer/vai_q_tensorflow2.x/
     ```
-5. Copy the `dz_vai_flow` folders into the `Vitis-AI` folder:
+5. Copy the `dz_vai_flow` and `dz_dataset` folders into the `Vitis-AI` folder:
     ```bash
-    cp -r dz_vai_flow/ Vitis-AI/
+    cp -r dz_vai_flow/ dz_dataset/ ../Vitis-AI/
     ```
-
 6. To launch the docker container with Vitis AI tools, execute the following commands from the `Vitis-AI` folder:
     ```bash
     cd Vitis-AI/
@@ -156,33 +153,40 @@ You can quantize and compile your own model. To do this, please copy your traine
 ```bash
 ./run_model.sh your_model.h5
 ```
+You may have to make the file executable with `chmod +x run_model.sh`
 
 ## Run on the ZCU102
 
-1. Flash [ZCU102 DPU image](https://www.xilinx.com/member/forms/download/design-license-xef.html?filename=xilinx-zcu102-dpu-v2022.2-v3.0.0.img.gz) (or download it [here](https://drive.google.com/file/d/17IEiRW8wZ8UVISNuKscxq4__2BXgZSsM/view?usp=sharing)) on the SD card with balenaEtcher for example. Then, insert the SD card into the ZCU102, and switch on the board. Be careful to put correctly boot mode switches on the ZCU102 : 1000.
+1. Flash [ZCU102 DPU image](https://www.xilinx.com/member/forms/download/design-license-xef.html?filename=xilinx-zcu102-dpu-v2022.2-v3.0.0.img.gz) (or download it [here](https://drive.google.com/file/d/17IEiRW8wZ8UVISNuKscxq4__2BXgZSsM/view?usp=sharing)) on the SD card with balenaEtcher for example. Then, insert the SD card into the ZCU102, and switch on the board. Be careful to put correctly boot mode switches on the ZCU102: 1000.
 
 2. When you power on the ZCU102, a red led appear, and then disappear when boot is done. You can connect to the board with UART or ethernet. Prefer the ethernet connection for file transfer, otherwise you will have to remove the SD card.
 
 3. Copy the `target_zcu102` folder from the host PC to the ZCU102:
-```bash
-cd Vitis-AI/flow-vitis-ai/
-scp -r target_zcu102 root@192.168.1.64:home/petalinux/
-```
+    ```bash
+    cd Vitis-AI/dz_vai_flow/
+    scp -r target_zcu102/ petalinux@192.168.1.64:/home/petalinux/
+    ```
+    Replace the IP address with yours.
 4. Connect as a root (necessary for compilation):
-``` bash
-sudo -s
-```
+    ``` bash
+    sudo -s
+    ```
+5. Copy `dz_dataset.zip` on the ZCU102:
+    ``` bash
+    scp dz_dataset.zip petalinux@192.168.1.64:/home/petalinux/
+    ```
 5. On the ZCU102, execute the following script **as root** to run the model:
-``` bash
-cd target_zcu102/
-./run_target
-```
----
-***Nota bene 1**: if you want to run your model, execute `./run_target your-model`, or modify the code.*
+    ``` bash
+    cd target_zcu102/
+    ./run_target
+    ```
+    You may have to make the file executable with `chmod +x run_model.sh`
 
-***Nota bene 2**: if you don't want to build de C++ application each time, execute `./run_target --no-compile`, or modify the code.*
+    ---
+    ***Nota bene**: if you don't want to build de C++ application each time, execute `./run_target --no-compile`, or modify the code.*
 
 # Possible pitfalls :
 - Failed to load xmodel subgraph: verify that there is only one subgraph. See [Run the Vitis AI flow](#Run-the-Vitis-AI-flow).
-- Failed to build C++ app: log as a root.
+- Failed to build C++ app: log as root.
 - Failed to launch a script: make the file executable with `chmod +x <script>`.
+- If you don't have an ethernet connection, you can copy files directly on the SD card and connect to the ZCU102 with USB UART.
