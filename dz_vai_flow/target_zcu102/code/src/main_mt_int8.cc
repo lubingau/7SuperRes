@@ -521,8 +521,8 @@ int main(int argc, char *argv[]) {
       //   cv::waitKey(1000);
       // }
 
-      // Optional: Save the super-resolved image
-      cv::imwrite(format("super_resolved_%03d.png", n), superResolvedImage);
+      // Optional: Save the super-resolved image into the folder named "outputs"
+      cv::imwrite(format("outputs/super_resolved_%03d.png", n), superResolvedImage);
       }
     }
   
