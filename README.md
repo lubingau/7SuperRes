@@ -71,9 +71,9 @@ Une fois que le modèle est entrainé, il faut d'abord le quantizer et le compil
     cp setup_docker_env.sh Vitis-AI/
     cp -r pkgs/ Vitis-AI/src/vai_quantizer/vai_q_tensorflow2.x/
     ```
-5. Copy the `dz-vai-flow` folders into the `Vitis-AI` folder:
+5. Copy the `dz_vai_flow` folders into the `Vitis-AI` folder:
     ```bash
-    cp -r dz-vai-flow/ Vitis-AI/
+    cp -r dz_vai_flow/ Vitis-AI/
     ```
 
 6. To launch the docker container with Vitis AI tools, execute the following commands from the `Vitis-AI` folder:
@@ -87,13 +87,13 @@ Une fois que le modèle est entrainé, il faut d'abord le quantizer et le compil
     ```
 8. Voilà! You are ready to play with Vitis AI tools.
 
-***WARNING**: you will need to execute the `setup_docker_env.sh` script each time you launch Vitis AI container.*
+***WARNING**: you will need to execute the `setup_docker_env.sh` script each time you launch the Vitis AI container.*
 
 ## Run the Vitis-AI flow
 1. Launch the Vitis AI container. Be careful to execute `setup_docker_env.sh` script.
 2. Launch the flow :
     ```bash
-    cd flow-vitis-ai/
+    cd dz_vai_flow/
     ./run_model.sh
     ```
 3. Output files will be in `build/`:
