@@ -7,7 +7,7 @@ def FSRCNN(d: int, s: int, m: int, input_size: tuple, upscaling_factor: int, col
     FSRCNN model implementation from https://arxiv.org/abs/1608.00367
     
     Sigmoid Activation in the output layer is not in the original paper.
-    But it is needed to align model prediction with ground truth HR images
+    But it is needed to align model prediction with ground truth GT images
     so their values are in the same range [0,1].
     """
     model = Sequential()

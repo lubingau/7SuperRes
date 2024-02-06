@@ -1,16 +1,16 @@
-import tensorflow as tf  
 import numpy as np
 import cv2
 import json
 import os
+import gc
 from tqdm.auto import tqdm
 from sklearn.model_selection import train_test_split
-import gc
 import matplotlib.pyplot as plt
 from tensorflow.keras.optimizers import RMSprop
 from livelossplot import PlotLossesKeras
-from sr_model import FSRCNN
-from custom_metrics import PSNR
+
+from training.sr_model import FSRCNN
+from training.custom_metrics import PSNR
 
 import argparse
 
@@ -20,8 +20,8 @@ def main(args):
     with open(parameters_path, 'r') as f:
             training_parameters = json.load(f)
 
-    gt_path = args.gt_path
-    blr_path = args.blr_path
+    gt_path = os.path.join(args.dataset_path, 'gt')
+    blr_path = os.path.join(args.dataset_path, 'blr')
 
     labels = []
     features = []
@@ -92,9 +92,8 @@ def main(args):
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--gt_path', default=None, type=str, help='Path to high-resolution patches')
-    parser.add_argument('--blr_path', default=None, type=str, help='Path to blurred low res patches')
-    parser.add_argument('--params_path', default=None, type=str, help='Path to the training parameters json')
+    parser.add_argument('--dataset_path', default="dp_dataset/train/", type=str, help='Path to the dataset')
+    parser.add_argument('--params_path', default="training/training_parameters.json", type=str, help='Path to the training parameters json')
 
     args = parser.parse_args()
     
