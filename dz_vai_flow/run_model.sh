@@ -80,7 +80,7 @@ COMP_LOG=${CNN}_compile.log
     python vai_q_tensorflow2.py \
         --float_model_file ../${MODEL_DIR}/${FLOAT_MODEL_FILENAME} \
         --quantized_model_file ../${QUANT_DIR}/${CNN}/${QUANTIZED_MODEL_FILENAME} \
-        --calib_num_img 100
+        --calib_num_img 1000
     cd ..
 }
 
@@ -97,7 +97,7 @@ COMP_LOG=${CNN}_compile.log
     python eval_quantized_model.py \
 	    --float_model_file ../${MODEL_DIR}/${FLOAT_MODEL_FILENAME} \
         --quantized_model_file ../${QUANT_DIR}/${CNN}/${QUANTIZED_MODEL_FILENAME} \
-        --eval_num_img 100 \
+        --eval_num_img 1000 \
         --save_images \
         --save_images_dir ../${PREDICT_DIR}/${CNN}
     cd ..
