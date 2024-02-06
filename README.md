@@ -31,6 +31,11 @@ DeepZoom
 
 Our model is an FSRCNN adapted from "*[Accelerating the Super-Resolution Convolutional Neural Network](https://arxiv.org/abs/1608.00367)*" with the following parameters:
 
+To begin with, you need to install the required packages:
+```bash
+pip3 install -r requirements.txt
+```
+
 To train our model, please run this Python script:
 ```bash
 python3 train.py --dataset path-to-dataset
