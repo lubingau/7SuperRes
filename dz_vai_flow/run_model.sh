@@ -39,7 +39,7 @@ COMP_LOG=${CNN}_compile.log
 # read arguments of the script
 if [ $# -eq 0 ]; then
     echo "No arguments provided"
-    FLOAT_MODEL_FILENAME=fsrcnn6.h5
+    FLOAT_MODEL_FILENAME=fsrcnn6_relu.h5
     echo "Using default model: ${FLOAT_MODEL_FILENAME}"
 else
     FLOAT_MODEL_FILENAME=$1
