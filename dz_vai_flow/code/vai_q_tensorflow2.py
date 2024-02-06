@@ -18,7 +18,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
-from config import fcn_config as cfg #DB
+from dz_vai_flow.code.config import config as cfg #DB
 
 
 # ==========================================================================================

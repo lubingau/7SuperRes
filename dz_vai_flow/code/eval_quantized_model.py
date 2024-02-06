@@ -19,7 +19,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from tensorflow_model_optimization.quantization.keras import vitis_quantize
 
-from config import fcn_config as cfg #DB
+from dz_vai_flow.code.config import config as cfg #DB
 
 
 # ==========================================================================================
