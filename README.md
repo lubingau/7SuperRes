@@ -47,20 +47,20 @@ Une fois que le modèle est entrainé, il faut d'abord le quantizer et le compil
 - Vitis AI 3.0 repository
 - Docker
 
-## Installation
+## Vitis AI installation
 1. Clone or download the [Vitis AI 3.0](https://github.com/Xilinx/Vitis-AI/tree/3.0) repository. ***WARNING** : be careful to use the 3.0 version*.
     ```bash
     git clone https://github.com/Xilinx/Vitis-AI
     git checkout -b 3.0 origin/3.0
     ```
-2. Install Vitis-AI on your PC
+2. Build the Vitis-AI docker on your PC
     ```bash
     cd Vitis-AI/
     cd docker/
     sudo ./docker_build.sh -t cpu -f tf2
     ```
     This operation might take some time (~20 minutes). If you want to use gpu instead of cpu, you can but we haven't tried it
-3. Once the process is finished, with the command ```sudo docker images``` you should see something like this:
+3. Once the process is finished, you should see something like this with the command ```sudo docker images```:
     ```text
     REPOSITORY                        TAG      IMAGE ID       CREATED         SIZE
     xilinx/vitis-ai-tensorflow2-cpu   latest   e1501ac96fd0   10 days ago     6.75GB
@@ -71,18 +71,21 @@ Une fois que le modèle est entrainé, il faut d'abord le quantizer et le compil
     cp setup_docker_env.sh Vitis-AI/
     cp -r pkgs/ Vitis-AI/src/vai_quantizer/vai_q_tensorflow2.x/
     ```
-5. Copy the `dz-flow`
+5. Copy the `dz-vai-flow` folders into the `Vitis-AI` folder:
+    ```bash
+    cp -r dz-vai-flow/ Vitis-AI/
+    ```
 
-5. To launch the docker container with Vitis AI tools, execute the following commands from the `Vitis-AI` folder:
+6. To launch the docker container with Vitis AI tools, execute the following commands from the `Vitis-AI` folder:
     ```bash
     cd Vitis-AI/
     sudo ./docker_run.sh xilinx/vitis-ai-tensorflow2-cpu:latest
     ```
-6. Once you are into the Vitis AI container, execute the following script to install some missing packages and libraries:
+7. Once you are into the Vitis AI container, execute the following script to install some missing packages and libraries:
     ```bash
     sudo ./setup_docker_env.sh
     ```
-6. Voilà! You are ready to play with Vitis AI tools.
+8. Voilà! You are ready to play with Vitis AI tools.
 
 ***WARNING**: you will need to execute the `setup_docker_env.sh` script each time you launch Vitis AI container.*
 
