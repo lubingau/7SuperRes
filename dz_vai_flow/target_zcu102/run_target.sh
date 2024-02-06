@@ -26,7 +26,7 @@ dataset() {
     echo "##################################################################################"
     echo " "
 
-    unzip ../dataset.zip -d ./
+    unzip ../dz_dataset.zip -d ./
 
     echo "[DZ INFO] Dataset extracted"
 }
