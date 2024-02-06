@@ -19,7 +19,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from tensorflow_model_optimization.quantization.keras import vitis_quantize
 
-from dz_vai_flow.code.config import config as cfg
+from config import config as cfg
 
 
 # ==========================================================================================
@@ -74,7 +74,7 @@ SAVING_DIR = args.save_images_dir
 FLOAT_DIR = os.path.join(SAVING_DIR, "float")
 QUANT_DIR = os.path.join(SAVING_DIR, "quant")
 GT_DIR = os.path.join(SAVING_DIR, "gt")
-LR_DIR = os.path.join(SAVING_DIR, "lr")
+LR_DIR = os.path.join(SAVING_DIR, "blr")
 
 # ==========================================================================================
 # prepare your data
@@ -93,6 +93,7 @@ else:
 def load_data(dir, max_images):
     X_data = []
     filelist = os.listdir(dir)
+    filelist = sorted(filelist)
     np.random.seed(0)
     np.random.shuffle(filelist)
     filelist = filelist[:max_images]
@@ -158,7 +159,7 @@ if args.save_images:
         plt.imsave(os.path.join(FLOAT_DIR, "float_" + str(i) + ".png"), Y_pred_float[i])
         plt.imsave(os.path.join(QUANT_DIR, "quant_" + str(i) + ".png"), Y_pred[i])
         plt.imsave(os.path.join(GT_DIR, "gt_" + str(i) + ".png"), Y_test[i])
-        plt.imsave(os.path.join(LR_DIR, "lr_" + str(i) + ".png"), X_test[i])
+        plt.imsave(os.path.join(LR_DIR, "blr_" + str(i) + ".png"), X_test[i])
 
 # ==========================================================================================
         

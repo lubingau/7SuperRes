@@ -6,36 +6,6 @@
 # Author: Daniele Bagni, Xilinx Inc
 # date:  28 Apr. 2023
 
-
-## clean up previous log files
-#rm -f ./log/*.log
-
-# folders
-WORK_DIR=./build
-LOG_DIR=${WORK_DIR}/0_log
-
-TARGET_102=${WORK_DIR}/../target_zcu102
-# ADD YOUR TARGET BOARD HERE
-
-MODEL_DIR=${WORK_DIR}/../input_model
-DATASET_DIR=${WORK_DIR}/../../dz_dataset
-
-QUANT_DIR=${WORK_DIR}/1_quantize_model
-PREDICT_DIR=${WORK_DIR}/2_predictions
-COMPILE_DIR=${WORK_DIR}/3_compile_model
-
-PREDICT_FLOAT_DIR=${PREDICT_DIR}/${CNN}/float
-PREDICT_QUANT_DIR=${PREDICT_DIR}/${CNN}/quant
-PREDICT_GT_DIR=${PREDICT_DIR}/${CNN}/gt
-PREDICT_LR_DIR=${PREDICT_DIR}/${CNN}/lr
-
-# logs & results files
-PREPARE_DATA_LOG=${CNN}_prepare_data.log
-QUANT_LOG=${CNN}_quantize_model.log
-EVAL_Q_LOG=${CNN}_evaluate_quantized_model.log
-COMP_LOG=${CNN}_compile.log
-
-# files names
 # read arguments of the script
 if [ $# -eq 0 ]; then
     echo "No arguments provided"
@@ -46,8 +16,32 @@ else
     echo "Using model: ${FLOAT_MODEL_FILENAME}"
 fi
 
-QUANTIZED_MODEL_FILENAME=${FLOAT_MODEL_FILENAME%.*}_quantized.h5
 CNN=${FLOAT_MODEL_FILENAME%.*}
+QUANTIZED_MODEL_FILENAME=${FLOAT_MODEL_FILENAME%.*}_quantized.h5
+
+# folders
+WORK_DIR=./build
+
+TARGET_102=${WORK_DIR}/../target_zcu102
+# ADD YOUR TARGET BOARD HERE
+
+MODEL_DIR=${WORK_DIR}/../input_model
+DATASET_DIR=${WORK_DIR}/../../dz_dataset
+
+LOG_DIR=${WORK_DIR}/0_log
+QUANT_DIR=${WORK_DIR}/1_quantize_model
+PREDICT_DIR=${WORK_DIR}/2_predictions
+COMPILE_DIR=${WORK_DIR}/3_compile_model
+
+PREDICT_FLOAT_DIR=${PREDICT_DIR}/${CNN}/float
+PREDICT_QUANT_DIR=${PREDICT_DIR}/${CNN}/quant
+PREDICT_GT_DIR=${PREDICT_DIR}/${CNN}/gt
+PREDICT_LR_DIR=${PREDICT_DIR}/${CNN}/blr
+
+# logs & results files
+QUANT_LOG=${CNN}_quantize_model.log
+EVAL_Q_LOG=${CNN}_evaluate_quantized_model.log
+COMP_LOG=${CNN}_compile.log
 
 ##################################################################################
 
@@ -60,9 +54,12 @@ CNN=${FLOAT_MODEL_FILENAME%.*}
     echo "##################################################################################"
     echo " "
 
+    # clean up previous log files
+    rm -f ${LOG_DIR}/${CNN}/*.log
+
     mkdir ${LOG_DIR} ${QUANT_DIR} ${COMPILE_DIR} ${PREDICT_DIR} 2> /dev/null
     mkdir ${LOG_DIR}/${CNN} ${QUANT_DIR}/${CNN} ${COMPILE_DIR}/${CNN} ${PREDICT_DIR}/${CNN} 2> /dev/null
-    mkdir ${PREDICT_FLOAT_DIR} ${PREDICT_QUANT_DIR} ${PREDICT_GT_DIR} ${PREDICT_LR_DIR} 2> /dev/null
+    mkdir ${PREDICT_FLOAT_DIR} ${PREDICT_QUANT_DIR} ${PREDICT_GT_DIR} ${PREDICT_LR_DIR} #2> /dev/null
 }
 
 
@@ -78,7 +75,7 @@ CNN=${FLOAT_MODEL_FILENAME%.*}
     echo "Using quantizer:"
     pip show -f vai_q_tensorflow2 | grep -E "Name:|Version:"
     echo " "
-    #quantize
+    # quantize
     cd code
     python vai_q_tensorflow2.py \
         --float_model_file ../${MODEL_DIR}/${FLOAT_MODEL_FILENAME} \
@@ -153,7 +150,7 @@ CNN=${FLOAT_MODEL_FILENAME%.*}
 2_eval_quantized_model #2>&1 | tee ${LOG_DIR}/${CNN}/${EVAL_Q_LOG}
 
 # compile for ZCU102 board
-3_compile_vai_zcu102 #2>&1 | tee ${LOG_DIR}/${CNN}/${COMP_LOG}
+3_compile_vai_zcu102 2>&1 | tee ${LOG_DIR}/${CNN}/${COMP_LOG}
 
 # display subgraphs
 4_display_subgraphs

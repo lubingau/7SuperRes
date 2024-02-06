@@ -18,7 +18,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
-from dz_vai_flow.code.config import config as cfg
+from config import config as cfg
 
 
 # ==========================================================================================

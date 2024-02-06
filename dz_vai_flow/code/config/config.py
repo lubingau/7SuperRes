@@ -28,7 +28,7 @@ print("config.py runs from ", SCRIPT_DIR)
 DATASET_DIR = os.path.join(SCRIPT_DIR, "../../dz_dataset")
 
 # output directories
-dir_train_input = os.path.join(DATASET_DIR, "train/lr")
+dir_train_input = os.path.join(DATASET_DIR, "train/blr")
 dir_train_label = os.path.join(DATASET_DIR, "train/gt")
-dir_test_input  = os.path.join(DATASET_DIR, "test/lr")
+dir_test_input  = os.path.join(DATASET_DIR, "test/blr")
 dir_test_label  = os.path.join(DATASET_DIR, "test/gt")
