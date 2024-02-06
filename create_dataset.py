@@ -75,6 +75,7 @@ if __name__ == '__main__':
     nb_img = args.nb_img
     
     blur_kernel = np.genfromtxt(kernel_path, delimiter=';')
+    blur_kernel = blur_kernel[:,:11] # remove the last column of nan because of the delimiter
     
     os.makedirs(gt_output_images_folder, exist_ok=True)
     os.makedirs(blr_output_images_folder, exist_ok=True)
