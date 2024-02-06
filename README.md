@@ -12,7 +12,7 @@ Téléchargez notre dataset ici (extrait de [Cars Overhead With Context](https:/
 
 Pour entrainer notre modèle, veuillez exécuter ce script python :
 
-Scrip to train the model :
+Script to train the model :
 ```bash
 python3 train.py --dataset path-to-dataset
 ```
