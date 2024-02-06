@@ -31,6 +31,12 @@ DeepZoom
 
 Our model is an FSRCNN adapted from "*[Accelerating the Super-Resolution Convolutional Neural Network](https://arxiv.org/abs/1608.00367)*" with the following parameters:
 
+---
+| D  | S  | M |
+|----|----|---|
+| 56 | 16 | 4 |
+---
+
 To train our model, please run this Python script:
 ```bash
 python3 train.py --dataset path-to-dataset
@@ -64,6 +70,8 @@ options:
   --patch_size PATCH_SIZE     Size of the patches to extract
   --nb_img NB_IMG             Number of images to process, -1 for full dataset
 ```
+<br>
+<br>
 
 # How to compile the model with Vitis-AI
 
@@ -118,7 +126,10 @@ Once the model is trained, it needs to be quantized and compiled with Vitis AI t
 
 ***WARNING**: you will need to execute the `setup_docker_env.sh` script each time you launch the Vitis AI container.*
 
-## Run the Vitis-AI flow
+<br>
+
+
+# Run the Vitis-AI flow
 1. Launch the Vitis AI container. Be careful to execute `setup_docker_env.sh` script.
 2. Launch the flow :
     ```bash
@@ -132,6 +143,7 @@ Once the model is trained, it needs to be quantized and compiled with Vitis AI t
     - `3_compile_model`: output compiled model and subgraphs
 4. Output files will be automatically copy into `target_zcu102` folder
 
+---
 *You can verify that the compilation is successful by viewing the `subgraph_<model>.png` file. This file represents the content of the `.xmodel` file which contains all the information required by the DPU. The file will be executable if and only if there is **only one DPU block** (blue). If there are multiple DPU blocks, it means that some operations are performed on the CPU within the model. This could be due to a mathematical operation not supported by the DPU, such as an activation function for example. Check the Vitis AI logs as well as the [Vitis AI documentation](https://docs.xilinx.com/r/3.0-English/ug1414-vitis-ai/Currently-Supported-Operators).*
 
 ## Compiled your model
@@ -153,12 +165,16 @@ You can quantize and compile your own model. To do this, please copy your traine
 cd Vitis-AI/flow-vitis-ai/
 scp -r target_zcu102 root@192.168.1.64:home/petalinux/
 ```
-
-4. On the ZCU102, execute the following script **as root** to run the model:
+4. Connect as a root (necessary for compilation):
+``` bash
+sudo -s
+```
+5. On the ZCU102, execute the following script **as root** to run the model:
 ``` bash
 cd target_zcu102/
 ./run_target
 ```
+---
 ***Nota bene 1**: if you want to run your model, execute `./run_target your-model`, or modify the code.*
 
 ***Nota bene 2**: if you don't want to build de C++ application each time, execute `./run_target --no-compile`, or modify the code.*
