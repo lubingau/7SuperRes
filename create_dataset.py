@@ -58,11 +58,11 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--input_dir', default=None, type=str, help='Path to input image directory')
-    parser.add_argument('--hr_dir', default=None, type=str, help='Path to save high-resolution patches')
-    parser.add_argument('--blr_dir', default=None, type=str, help='Path to save blurred low res patches')
+    parser.add_argument('--hr_dir', default='dz_dataset/train/hr/', type=str, help='Path to save high-resolution patches')
+    parser.add_argument('--blr_dir', default='dz_dataset/train/blr/', type=str, help='Path to save blurred low res patches')
     parser.add_argument('--kernel_path', default='PSF_E10x2.csv', type=str, help='Path to blur kernel')
     parser.add_argument('--stride', default=0.75, type=float, help='Stride ratio for patch extraction')
-    parser.add_argument('--patch_size', default=128, type=int, help='Size of the patches to extract')
+    parser.add_argument('--patch_size', default=256, type=int, help='Size of the patches to extract')
     parser.add_argument('--nb_img', default=-1, type=int, help='Number of images to process, -1 for full dataset')
     
     args = parser.parse_args()

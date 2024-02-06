@@ -7,18 +7,36 @@ The DeepZoom project is an initiative by Airbus Defense and Space, proposed to s
 
 # How to train the model
 
-Téléchargez notre dataset ici (extrait de [Cars Overhead With Context](https://gdo152.llnl.gov/cowc/)). Notre modèle est un FSRCNN adapté de "*[Accelerating the Super-Resolution Convolutional Neural Network](https://arxiv.org/abs/1608.00367)*" dont les paramètres sont les suivants :
+Download our dataset [here](https://drive.google.com/drive/folders/1xJYEhfPTt9Ox6RwFbfRrWGRmBvW3IX2l?usp=sharing) (extracted from [Cars Overhead With Context](https://gdo152.llnl.gov/cowc/)) and copy it in the DeepZoom repo.
+You should have this structure:
+```
+DeepZoom
+├── doc
+├── dz_dataset
+│   ├── test
+│   │   ├── blr
+│   │   └── gt
+│   └── train
+│       ├── blr
+│       └── gt
+├── dz_vai_flow
+│   ├── build
+│   ├── code
+│   ├── dataset
+│   ├── input_model
+│   └── target_zcu102
+└── pkgs
+```
 
 
-Pour entrainer notre modèle, veuillez exécuter ce script python :
+Our model is an FSRCNN adapted from "*[Accelerating the Super-Resolution Convolutional Neural Network](https://arxiv.org/abs/1608.00367)*" with the following parameters:
 
-Script to train the model :
+To train our model, please run this Python script:
 ```bash
 python3 train.py --dataset path-to-dataset
 ```
 
 Here are all options :
-
 ```bash
 options:
   -h, --help            show this help message and exit
@@ -29,20 +47,31 @@ options:
 ```
 ## How to train with your own dataset
 
-Nous proposons un script python qui vous permet de créer votre dataset avec vos propre images:
+We provide a Python script that allows you to create your dataset with your own images:
 ```bash
-cd dataset/
-python3 generate_dataset.py --images path-to-your-images
+python3 generate_dataset.py --input_dir path-to-your-images
+```
+
+Here are all options :
+
+```bash
+options:
+  --input_dir INPUT_DIR       Path to input image directory
+  --hr_dir HR_DIR             Path to save high-resolution patches
+  --blr_dir BLR_DIR           Path to save blurred low res patches
+  --kernel_path KERNEL_PATH   Path to blur kernel
+  --stride STRIDE             Stride ratio for patch extraction
+  --patch_size PATCH_SIZE     Size of the patches to extract
+  --nb_img NB_IMG             Number of images to process, -1 for full dataset
 ```
 
 # How to compile the model with Vitis-AI
 
-Une fois que le modèle est entrainé, il faut d'abord le quantizer et le compiler avec les outils de Vitis AI. Nous utilisons la version 3.0. Voici un schéma représentant notre flow Vitis AI:
+Once the model is trained, it needs to be quantized and compiled with Vitis AI tools. We use version 3.0. Here is a schema representing our Vitis AI flow:
 
 ![Flow Vitis AI](./doc/flow-vitis-ai.png)
 
 ## Requirements
-
 - Ubuntu 22.04 host PC
 - Vitis AI 3.0 repository
 - Docker
@@ -103,14 +132,14 @@ Une fois que le modèle est entrainé, il faut d'abord le quantizer et le compil
     - `3_compile_model`: output compiled model and subgraphs
 4. Output files will be automatically copy into `target_zcu102` folder
 
-*Vous pouvez vérifier que la compilation est réussie en visualisant le fichier `subgraph_model.png`. Ce fichier représente le contenu du fichier `.xmodel` qui contient toutes les informations nécessaires au DPU. Le fichier sera executable si et seulement si il n'y qu'**un seul bloc DPU** (bleu). Dans le cas ou il existe plusieurs blocs DPU, cela signifie que des opérations sont réalisées sur le CPU au sein du modèle. Cela peut-être dû à une opération mathématique non supportée par le DPU, une fonction d'activation par exemple. Vérifiez les logs Vitis AI ainsi que la [documentation Vitis AI](https://docs.xilinx.com/r/3.0-English/ug1414-vitis-ai/Currently-Supported-Operators).*
+*You can verify that the compilation is successful by viewing the `subgraph_<model>.png` file. This file represents the content of the `.xmodel` file which contains all the information required by the DPU. The file will be executable if and only if there is **only one DPU block** (blue). If there are multiple DPU blocks, it means that some operations are performed on the CPU within the model. This could be due to a mathematical operation not supported by the DPU, such as an activation function for example. Check the Vitis AI logs as well as the [Vitis AI documentation](https://docs.xilinx.com/r/3.0-English/ug1414-vitis-ai/Currently-Supported-Operators).*
 
 ## Compiled your model
 
-Il vous est possible de quantizer et compiler votre propre modèle. Pour cela, veuillez copier votre modèle entrainé en tensorflow2 (dernière version de tensorflow) dans le dossier `input_model`. Puis exécuter le flow Vitis AI en lui précisant le nom de votre modèle. Le flow s'occupera de créer un dossier pour ce modèle pour toutes les étapes clées du flow:
+You can quantize and compile your own model. To do this, please copy your trained model in TensorFlow 2 (the latest version of TensorFlow) into the `input_model` folder. Then, execute the Vitis AI flow by specifying the name of your model. The flow will take care of creating a folder for this model for all key steps of the flow.
 
 ```bash
-./run_model your_model.h5
+./run_model.sh your_model.h5
 ```
 
 ## Run on the ZCU102
@@ -137,3 +166,4 @@ cd target_zcu102/
 # Possible pitfalls :
 - Failed to load xmodel subgraph: verify that there is only one subgraph. See [Run the Vitis AI flow](#Run-the-Vitis-AI-flow).
 - Failed to build C++ app: log as a root.
+- Failed to launch a script: make the file executable.
