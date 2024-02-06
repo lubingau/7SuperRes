@@ -60,7 +60,7 @@ def main(args):
     plt.subplot(122)
     plt.imshow(y[index].astype(np.float32))
     plt.axis('off')
-    plt.title('Orginal')
+    plt.title('Original')
     plt.show() 
     
      #Splitting the dataset in train/val
@@ -87,7 +87,7 @@ def main(args):
                         batch_size=training_parameters['batch_size'],
                         callbacks=[PlotLossesKeras()])
     
-    model.save(training_parameters['model_name'] + '.h5')
+    model.save('dz_vai_flow/input_model/' + training_parameters['model_name'] + '.h5')
     
 if __name__ == '__main__':
 
