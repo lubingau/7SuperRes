@@ -67,7 +67,7 @@ Une fois que le modèle est entrainé, il faut d'abord le quantizer et le compil
     ```
 4. You will need to install some missing packages and libraries into the Vitis AI container. Copy the file `setup_docker_env.sh` into the `Vitis-AI` folder
     ```bash
-    cp DeepZoom/flow-vitis-ai/setup_env.sh Vitis-AI/
+    cp DeepZoom/setup_docker_env.sh Vitis-AI/
     ```
 5. To launch the docker container with Vitis AI tools, execute the following commands from the `Vitis-AI` folder:
     ```bash
