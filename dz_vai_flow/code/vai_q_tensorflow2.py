@@ -18,7 +18,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
-from dz_vai_flow.code.config import config as cfg #DB
+from dz_vai_flow.code.config import config as cfg
 
 
 # ==========================================================================================
@@ -69,7 +69,7 @@ QUANT_H5_FILE = args.quantized_model_file
 # ==========================================================================================
 # prepare your data
 # ==========================================================================================
-print("\n[DB INFO] Loading Train Data ...")
+print("\n[DZ INFO] Loading Train Data ...")
 
 dir_train_input = cfg.dir_train_input
 
@@ -97,14 +97,14 @@ print("--------> X_train shape = ", X_train.shape)
 # ==========================================================================================
 # Get the trained floating point model
 # ==========================================================================================
-print("[DB INFO] Loading Float Model...")
+print("[DZ INFO] Loading Float Model...")
 
 model = keras.models.load_model(FLOAT_H5_FILE)
 
 # ==========================================================================================
 # Vitis AI Quantization
 # ==========================================================================================
-print("[DB INFO] Vitis AI Quantization...")
+print("[DZ INFO] Vitis AI Quantization...")
 
 from tensorflow_model_optimization.quantization.keras import vitis_quantize
 quantizer = vitis_quantize.VitisQuantizer(model)
@@ -112,9 +112,9 @@ q_model = quantizer.quantize_model(calib_dataset=X_train,
                                    calib_steps=args.calib_iter)
 
 q_model.save(QUANT_H5_FILE)
-print("[DB INFO] Saved Quantized Model in :", QUANT_H5_FILE)
+print("[DZ INFO] Saved Quantized Model in :", QUANT_H5_FILE)
 
-print("[DB INFO] Quantization done!")
+print("[DZ INFO] Quantization done!")
 
 # ==========================================================================================
 # END
