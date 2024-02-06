@@ -28,6 +28,10 @@ DeepZoom
 └── pkgs
 ```
 
+To begin with, you need to install the required packages:
+```bash
+pip3 install -r requirements.txt
+```
 
 Our model is an FSRCNN adapted from "*[Accelerating the Super-Resolution Convolutional Neural Network](https://arxiv.org/abs/1608.00367)*" with the following parameters:
 

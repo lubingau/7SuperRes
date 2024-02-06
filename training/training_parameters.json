@@ -1,0 +1,13 @@
+{
+  "model_name": "FSRCNN",
+  "test_ratio": 0.2,
+  "epochs": 100,
+  "batch_size": 32,
+  "lr": 0.001,
+  "BLR_IMG_SIZE": [128, 128],
+  "UPSCALING_FACTOR": 2,
+  "COLOR_CHANNELS": 3,
+  "d": 56,
+  "s": 16,
+  "m": 6
+}
