@@ -111,7 +111,7 @@ CNN=${FLOAT_MODEL_FILENAME%.*}
     python vai_q_tensorflow2.py \
         --float_model_file ../${MODEL_DIR}/${FLOAT_MODEL_FILENAME} \
         --quantized_model_file ../${QUANT_DIR}/${CNN}/${QUANTIZED_MODEL_FILENAME} \
-        --calib_num_img 1000
+        --calib_num_img 100
     cd ..
 }
 
@@ -129,7 +129,7 @@ CNN=${FLOAT_MODEL_FILENAME%.*}
     python eval_quantized_model.py \
 	    --float_model_file ../${MODEL_DIR}/${FLOAT_MODEL_FILENAME} \
         --quantized_model_file ../${QUANT_DIR}/${CNN}/${QUANTIZED_MODEL_FILENAME} \
-        --eval_num_img 1000 \
+        --eval_num_img 100 \
         --save_images \
         --save_images_dir ../${PREDICT_DIR}/${CNN}
     cd ..
