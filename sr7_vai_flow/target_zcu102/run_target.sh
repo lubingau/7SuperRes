@@ -70,7 +70,8 @@ run_models() {
     echo "##################################################################################"
     echo " "
 
-    mkdir outputs 2> /dev/null
+    rm -r outputs 2> /dev/null
+    mkdir outputs
 
     echo "[SR7 INFO] Running CNN model"
     ./run_cnn ./fsrcnn6_relu/model/fsrcnn6_relu.xmodel  ../sr7_dataset/test/blr/ 6 0 1 2> /dev/null | tee ./rpt/logfile_cpp_fsrcnn6_relu.txt

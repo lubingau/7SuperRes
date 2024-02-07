@@ -261,13 +261,14 @@ int main(int argc, char *argv[]) {
   // MEMORY ALLOCATION
 
   // Load all image filenames
-  vector<string> image_filename;
-  ListImages(baseImagePath, image_filename);
-  if (image_filename.size() == 0) {
+  vector<string> IMAGES_NAME_LIST;
+  ListImages(baseImagePath, IMAGES_NAME_LIST);
+
+  if (IMAGES_NAME_LIST.size() == 0) {
     cerr << "\nError: No images existing under " << baseImagePath << endl;
     exit(-1);
   } else {
-    num_of_images = image_filename.size();
+    num_of_images = IMAGES_NAME_LIST.size();
     cout << "\n Find " << num_of_images << " images" << endl;
   }
 
@@ -282,7 +283,7 @@ int main(int argc, char *argv[]) {
   num_of_images = num_images_x_thread * num_threads;
 
   // memory allocation
-  vector<Mat> imagesList;
+  vector<Mat> IMAGES_LIST;
   Mat segMat(outHeight, outWidth, CV_8UC3);
   Mat showMat(outHeight, outWidth, CV_8UC3);
   Mat image = cv::Mat(inHeight, inWidth, CV_8UC3);
@@ -298,9 +299,9 @@ int main(int argc, char *argv[]) {
 
   for (unsigned int n = 0; n < num_of_images; n++)
   {
-      image = imread(baseImagePath + image_filename[n]);
-      cout << "Reading " << image_filename[n] << endl;
-      imagesList.push_back(image);
+      image = imread(baseImagePath + IMAGES_NAME_LIST[n]);
+      //cout << "Reading " << IMAGES_NAME_LIST[n] << endl;
+      IMAGES_LIST.push_back(image);
       /*
         char s[20]; sprintf(s, "inp_%03d", n);
         cv::imshow(s,  image);
@@ -313,7 +314,7 @@ int main(int argc, char *argv[]) {
   cout << "\nImages loaded" << endl;
   for (unsigned int n = 0; n < num_of_images; n++)
   {
-      image = imagesList[n];
+      image = IMAGES_LIST[n];
 
       for (int y = 0; y < inHeight; y++) {
 	       for (int x = 0; x < inWidth; x++) {
@@ -327,7 +328,7 @@ int main(int argc, char *argv[]) {
       }
 
       // if (n <= 3) {
-      //   cv::imshow(format("list_%03d.png",n),  imagesList[n]);
+      //   cv::imshow(format("list_%03d.png",n),  IMAGES_LIST[n]);
       //   cv::waitKey(1000);
       //   cv::destroyAllWindows();
       // }
@@ -343,11 +344,11 @@ int main(int argc, char *argv[]) {
 
   /*
   // just for debug
-  imagesList.begin();
+  IMAGES_LIST.begin();
   for (unsigned int n = 0; n < num_of_images; n++)
   {
-      image = imagesList[n];
-      cv::imshow(format("list_%03d", n),  imagesList[n]);
+      image = IMAGES_LIST[n];
+      cv::imshow(format("list_%03d", n),  IMAGES_LIST[n]);
       cv::waitKey(1000);
       cv::imshow(format("clone_%03d", n),  image);
       cv::waitKey(1000);
@@ -428,68 +429,88 @@ int main(int argc, char *argv[]) {
 
 /////////////////////////////////////////////////////////////////////////////////////////////
   // POSTPROCESSING ALL THE IMAGES AT ONCE
-  if (use_post_processing == 1) {
-    cout << "\n DOING POST PROCESSING\n" << endl;
+  // if (use_post_processing == 1) {
+  //   cout << "\n DOING POST PROCESSING\n" << endl;
 
-    auto postpr_t1 = std::chrono::high_resolution_clock::now();
+  //   auto postpr_t1 = std::chrono::high_resolution_clock::now();
 
-    for (unsigned int n = 0; n < num_of_images; n++) {
-      // cout << "\nImage : " << image_filename[n] << endl;
-      image = imagesList[n].clone();
-      Mat small_img;
-      cv::resize(image, small_img, showMat.size(), 0, 0, INTER_AREA);
+  //   for (unsigned int n = 0; n < num_of_images; n++) {
+  //     // cout << "\nImage : " << IMAGES_NAME_LIST[n] << endl;
+  //     image = IMAGES_LIST[n].clone();
+  //     Mat small_img;
+  //     cv::resize(image, small_img, showMat.size(), 0, 0, INTER_AREA);
 
-      // cv::imshow("Segmentation", small_img);
-      // cv::waitKey(1000);
-      // save the image
-      // cv::imwrite(image_filename[n], image);
-      // cv::destroyAllWindows();
+  //     // cv::imshow("Segmentation", small_img);
+  //     // cv::waitKey(1000);
+  //     // save the image
+  //     // cv::imwrite(IMAGES_NAME_LIST[n], image);
+  //     // cv::destroyAllWindows();
 
-      int8_t *OutData = &FCResult[n * outSize];
-      for (int row = 0; row < outHeight; row++) {
-        for (int col = 0; col < outWidth; col++) {
-          int ii = row * outWidth * num_of_classes +
-                   col * num_of_classes;  // to map the segmented image into
-                                          // colors uncomment this line
-          auto max_ind =
-              max_element(OutData + ii, OutData + ii + num_of_classes);
-          int posit = distance(OutData + ii, max_ind);
-          segMat.at<Vec3b>(row, col) =
-              Vec3b(colorB[posit], colorG[posit], colorR[posit]);
-        }
-      }
-      for (int ii = 0; ii < showMat.rows * showMat.cols * 3; ii++) {
-        showMat.data[ii] = small_img.data[ii] * 0.4 + segMat.data[ii] * 0.6;
-      }
+  //     int8_t *OutData = &FCResult[n * outSize];
+  //     for (int row = 0; row < outHeight; row++) {
+  //       for (int col = 0; col < outWidth; col++) {
+  //         int ii = row * outWidth * num_of_classes +
+  //                  col * num_of_classes;  // to map the segmented image into
+  //                                         // colors uncomment this line
+  //         auto max_ind =
+  //             max_element(OutData + ii, OutData + ii + num_of_classes);
+  //         int posit = distance(OutData + ii, max_ind);
+  //         segMat.at<Vec3b>(row, col) =
+  //             Vec3b(colorB[posit], colorG[posit], colorR[posit]);
+  //       }
+  //     }
+  //     for (int ii = 0; ii < showMat.rows * showMat.cols * 3; ii++) {
+  //       showMat.data[ii] = small_img.data[ii] * 0.4 + segMat.data[ii] * 0.6;
+  //     }
 
-      // // just for debug
-      // if (n <= 3) {
-      //   char s[20];
-      //   sprintf(s, "out_%03d", n);
-      //   putText(image3, s, Point(10, 10), FONT_HERSHEY_PLAIN, 1.0,
-      //          CV_RGB(0, 255, 0), 2.0);
+  //     // // just for debug
+  //     // if (n <= 3) {
+  //     //   char s[20];
+  //     //   sprintf(s, "out_%03d", n);
+  //     //   putText(image3, s, Point(10, 10), FONT_HERSHEY_PLAIN, 1.0,
+  //     //          CV_RGB(0, 255, 0), 2.0);
 
-      //   Mat dst;
-      //   cv::hconcat(small_img, segMat, dst);  // horizontal
-      //   cv::imshow(s, dst);
-      //   cv::waitKey(1000);
-      //   cv::imwrite(format("out_%03d.png", n), dst);
-      //   cv::destroyAllWindows();
-      // }
-    }
-    auto postpr_t2 = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double, std::micro> postpr_time = postpr_t2 - postpr_t1 - avg_calibr_highres;
-    cout << "\n" << endl;
-    cout << "[POSTPROC Time ] " << postpr_time.count() << "us" << endl;
-    //cout << "[POSTPROC FPS  ] " << num_of_images*1000000.0/postpr_time.count()  << endl;
-    cout << "\n" << endl;
-    total_time =  (double) postpr_time.count();
-  }
+  //     //   Mat dst;
+  //     //   cv::hconcat(small_img, segMat, dst);  // horizontal
+  //     //   cv::imshow(s, dst);
+  //     //   cv::waitKey(1000);
+  //     //   cv::imwrite(format("out_%03d.png", n), dst);
+  //     //   cv::destroyAllWindows();
+  //     // }
+  //   }
+  //   auto postpr_t2 = std::chrono::high_resolution_clock::now();
+  //   std::chrono::duration<double, std::micro> postpr_time = postpr_t2 - postpr_t1 - avg_calibr_highres;
+  //   cout << "\n" << endl;
+  //   cout << "[POSTPROC Time ] " << postpr_time.count() << "us" << endl;
+  //   //cout << "[POSTPROC FPS  ] " << num_of_images*1000000.0/postpr_time.count()  << endl;
+  //   cout << "\n" << endl;
+  //   total_time =  (double) postpr_time.count();
+  // }
 
   if (save_results == 1) {
     cout << "\n SAVING RESULTS\n" << endl;
+    string image_name;
+    int line_index, col_index;
     for (unsigned int n = 0; n < num_of_images; n++) {
       
+      image_name = IMAGES_NAME_LIST[n];
+      cout << "Input image name: " << image_name << endl;
+      // remove the extension
+      image_name = image_name.substr(0, image_name.find_last_of("."));
+      // split the name with _
+      vector<string> tokens;
+      stringstream check1(image_name);
+      string intermediate;
+      while(getline(check1, intermediate, '_'))
+      {
+          tokens.push_back(intermediate);
+      }
+
+      // indexes are 2 last tokens
+      line_index = stoi(tokens[tokens.size()-2]);
+      col_index = stoi(tokens[tokens.size()-1]);
+      cout << "Line index: " << line_index << " Col index: " << col_index << endl;
+
       // Assuming FCResult is a pointer to the int8 tensor containing super-resolution results
       int8_t *OutData = &FCResult[n * outSize];
 
@@ -522,7 +543,7 @@ int main(int argc, char *argv[]) {
       // }
 
       // Optional: Save the super-resolved image into the folder named "outputs"
-      cv::imwrite(format("outputs/super_resolved_%03d.png", n), superResolvedImage);
+      cv::imwrite(format("outputs/sr_%d_%d.png", line_index, col_index), superResolvedImage);
       }
     }
   
@@ -541,8 +562,8 @@ int main(int argc, char *argv[]) {
   delete[] imageInputs;
   cout << "deleting FCResult    memory" << endl;
   delete[] FCResult;
-  cout << "deleting imagesList  memory" << endl;
-  imagesList.clear();
+  cout << "deleting IMAGES_LIST  memory" << endl;
+  IMAGES_LIST.clear();
 
   return 0;
 }
