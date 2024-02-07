@@ -26,7 +26,7 @@ dataset() {
     echo "##################################################################################"
     echo " "
 
-    unzip ../sr7_dataset.zip -d ./
+    unzip ../sr7_dataset.zip -d ../
 
     echo "[DZ INFO] Dataset extracted"
 }
@@ -59,11 +59,15 @@ run_fps() {
 
 
 #clean
-if [ ! -d "dataset" ]; then
-dataset
+if [ ! -d "../sr7_dataset" ]; then
+    dataset
+else
+    echo "Dataset already exists"
 fi
 if [ "$1" != "--no-compile" ]; then
-compile
+    compile
+else
+    echo "Skipping compilation"
 fi
 mkdir outputs 2> /dev/null
 run_models
