@@ -9,7 +9,7 @@ import argparse
 """
 Usecase example: 
 
-python create_dataset.py --input_dir /path/to/input_images --output_dir dz_dataset/train/ --kernel_path blur_kernel.csv --stride 0.75 --patch_size 256 --nb_img -1
+python create_dataset.py --input_dir /path/to/input_images --output_dir 7sr_dataset/train/ --kernel_path blur_kernel.csv --stride 0.75 --patch_size 256 --nb_img -1
 
 """
 
@@ -58,7 +58,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--input_dir', required=True, type=str, help='Path to input images directory')
-    parser.add_argument('--output_dir', default='dz_dataset/train/', type=str, help='Path to save the dataset')
+    parser.add_argument('--output_dir', default='7sr_dataset/train/', type=str, help='Path to save the dataset')
     parser.add_argument('--kernel_path', default='PSF_E10x2.csv', type=str, help='Path to blur kernel')
     parser.add_argument('--stride', default=0.75, type=float, help='Stride ratio for patch extraction')
     parser.add_argument('--patch_size', default=256, type=int, help='Size of the patches to extract')

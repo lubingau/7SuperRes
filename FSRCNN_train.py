@@ -94,12 +94,12 @@ def main(args):
     
     q_aware_model.save(training_parameters['model_name'] + '.h5')
     
-    q_aware_model.save('dz_vai_flow/input_model/' + training_parameters['model_name'] + '.h5')
+    q_aware_model.save('7sr_dataset/input_model/' + training_parameters['model_name'] + '.h5')
     
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dataset_path', default="dz_dataset/train/", type=str, help='Path to the dataset')
+    parser.add_argument('--dataset_path', default="7sr_dataset/train/", type=str, help='Path to the dataset')
     parser.add_argument('--params_path', default="training/training_parameters.json", type=str, help='Path to the training parameters json')
 
     args = parser.parse_args()

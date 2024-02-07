@@ -1,23 +1,25 @@
+![ZCU102](./doc/logo_7SuperRes.png)
+
 # A super resolution AI on ZCU102
 
-The Super-res-n7 project is an initiative by Airbus Defense and Space, proposed to students at ENSEEIHT as part of an Industrial Study Project (BEI). The objective of this project is to develop an embedded application for satellite image super-resolution using AI techniques. Ultimately, the application should be capable of being deployed on an already-orbiting satellite. The system is a sandbox (thus reconfigurable) and is equipped with an optical sensor capable of capturing RGB images with a resolution of 150 million pixels (14192x10640).
+The 7SuperRes project is an initiative by Airbus Defense and Space, proposed to students at ENSEEIHT as part of an Industrial Study Project (BEI). The objective of this project is to develop an embedded application for satellite image super-resolution using AI techniques. Ultimately, the application should be capable of being deployed on an already-orbiting satellite. The system is a sandbox (thus reconfigurable) and is equipped with an optical sensor capable of capturing RGB images with a resolution of 150 million pixels (14192x10640).
 
 
 # How to train the model
 
-Download our dataset [here](https://drive.google.com/drive/folders/1xJYEhfPTt9Ox6RwFbfRrWGRmBvW3IX2l?usp=sharing) (extracted from [Cars Overhead With Context](https://gdo152.llnl.gov/cowc/)) and copy it in the Super-res-n7 repo.
+Download our dataset [here](https://drive.google.com/drive/folders/1xJYEhfPTt9Ox6RwFbfRrWGRmBvW3IX2l?usp=sharing) (extracted from [Cars Overhead With Context](https://gdo152.llnl.gov/cowc/)) and copy it in the 7SuperRes repo.
 You should have this structure:
 ```
-Super-res-n7
+7SuperRes
 ├── doc
-├── dz_dataset
+├── 7sr_dataset
 │   ├── test
 │   │   ├── blr
 │   │   └── gt
 │   └── train
 │       ├── blr
 │       └── gt
-├── dz_vai_flow
+├── 7sr_vai_flow
 │   ├── build
 │   ├── code
 │   ├── dataset
@@ -76,7 +78,7 @@ options:
 
 Once the model is trained, it needs to be quantized and compiled with Vitis AI tools. We use version 3.0. Here is a schema representing our Vitis AI flow:
 
-![Flow Vitis AI](./doc/dz_vai_flow.png)
+![Flow Vitis AI](./doc/7sr_vai_flow.png)
 
 ## Requirements
 - Ubuntu 22.04 host PC
@@ -103,13 +105,13 @@ Once the model is trained, it needs to be quantized and compiled with Vitis AI t
     ```
 4. You will need to install some missing packages and libraries into the Vitis AI container. Copy the file `setup_docker_env.sh` into the `Vitis-AI` folder
     ```bash
-    cd Super-res-n7
+    cd 7SuperRes
     cp setup_docker_env.sh ../Vitis-AI/
     cp -r pkgs/ ../Vitis-AI/src/vai_quantizer/vai_q_tensorflow2.x/
     ```
-5. Copy the `dz_vai_flow` and `dz_dataset` folders into the `Vitis-AI` folder:
+5. Copy the `7sr_vai_flow` and `7sr_dataset` folders into the `Vitis-AI` folder:
     ```bash
-    cp -r dz_vai_flow/ dz_dataset/ ../Vitis-AI/
+    cp -r 7sr_vai_flow/ 7sr_dataset/ ../Vitis-AI/
     ```
 6. To launch the docker container with Vitis AI tools, execute the following commands from the `Vitis-AI` folder:
     ```bash
@@ -131,7 +133,7 @@ Once the model is trained, it needs to be quantized and compiled with Vitis AI t
 1. Launch the Vitis AI container. Be careful to execute `setup_docker_env.sh` script.
 2. Launch the flow :
     ```bash
-    cd dz_vai_flow/
+    cd 7sr_vai_flow/
     ./run_model.sh
     ```
 3. Output files will be in `build/`:
@@ -161,7 +163,7 @@ You may have to make the file executable with `chmod +x run_model.sh`
 
 3. Copy the `target_zcu102` folder from the host PC to the ZCU102:
     ```bash
-    cd Vitis-AI/dz_vai_flow/
+    cd Vitis-AI/7sr_vai_flow/
     scp -r target_zcu102/ petalinux@192.168.1.64:/home/petalinux/
     ```
     Replace the IP address with yours.
@@ -169,9 +171,9 @@ You may have to make the file executable with `chmod +x run_model.sh`
     ``` bash
     sudo -s
     ```
-5. Copy `dz_dataset.zip` on the ZCU102:
+5. Copy `7sr_dataset.zip` on the ZCU102:
     ``` bash
-    scp dz_dataset.zip petalinux@192.168.1.64:/home/petalinux/
+    scp 7sr_dataset.zip petalinux@192.168.1.64:/home/petalinux/
     ```
 5. On the ZCU102, execute the following script **as root** to run the model:
     ``` bash
