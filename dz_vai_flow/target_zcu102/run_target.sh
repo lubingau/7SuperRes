@@ -49,7 +49,7 @@ compile() {
 
 # now run semantic segmentation with 3 CNNs using VART C++ APIs with single thread
 run_models() {
-    ./run_cnn ./fsrcnn6_relu/model/fsrcnn6_relu.xmodel  ./dataset/test/lr/ 6 0 1 2> /dev/null | tee ./rpt/logfile_cpp_fsrcnn6_relu.txt
+    ./run_cnn ./fsrcnn6_relu/model/fsrcnn6_relu.xmodel  ../dz_dataset/test/blr/ 6 0 1 2> /dev/null | tee ./rpt/logfile_cpp_fsrcnn6_relu.txt
 }
 
 run_fps() {
