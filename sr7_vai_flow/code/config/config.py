@@ -25,7 +25,7 @@ SCRIPT_DIR = get_script_directory()
 print("config.py runs from ", SCRIPT_DIR)
 
 # dataset top level folder
-DATASET_DIR = os.path.join(SCRIPT_DIR, "../../7sr_dataset")
+DATASET_DIR = os.path.join(SCRIPT_DIR, "../../sr7_dataset")
 
 # output directories
 dir_train_input = os.path.join(DATASET_DIR, "train/blr")

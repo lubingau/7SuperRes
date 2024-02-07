@@ -26,7 +26,7 @@ TARGET_102=${WORK_DIR}/../target_zcu102
 # ADD YOUR TARGET BOARD HERE
 
 MODEL_DIR=${WORK_DIR}/../input_model
-DATASET_DIR=${WORK_DIR}/../../7sr_dataset
+DATASET_DIR=${WORK_DIR}/../../sr7_dataset
 
 LOG_DIR=${WORK_DIR}/0_log
 QUANT_DIR=${WORK_DIR}/1_quantize_model

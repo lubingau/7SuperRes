@@ -1,24 +1,24 @@
-![ZCU102](./doc/logo_7SuperRes.png)
+![ZCU102](./doc/logo_SuperRes7.png)
 
 # A super resolution AI on ZCU102
 
-The 7SuperRes project is part of an Industrial Study Project (BEI) of ENSEEIHT. The objective of this project is to develop an embedded application for satellite image super-resolution using AI techniques. Ultimately, the application should be capable of being deployed on an already-orbiting satellite. The system is a sandbox (thus reconfigurable) and is equipped with an optical sensor capable of capturing RGB images with a resolution of 150 million pixels (14192x10640).
+The SuperRes7 project is part of an Industrial Study Project (BEI) of ENSEEIHT. The objective of this project is to develop an embedded application for satellite image super-resolution using AI techniques. Ultimately, the application should be capable of being deployed on an already-orbiting satellite. The system is a sandbox (thus reconfigurable) and is equipped with an optical sensor capable of capturing RGB images with a resolution of 150 million pixels (14192x10640).
 
 
 # How to train the model
 
-Download our dataset [here](https://drive.google.com/drive/folders/1xJYEhfPTt9Ox6RwFbfRrWGRmBvW3IX2l?usp=sharing) (extracted from [Cars Overhead With Context](https://gdo152.llnl.gov/cowc/)) and copy it in the 7SuperRes repo.
+Download our dataset [here](https://drive.google.com/drive/folders/1xJYEhfPTt9Ox6RwFbfRrWGRmBvW3IX2l?usp=sharing) (extracted from [Cars Overhead With Context](https://gdo152.llnl.gov/cowc/)) and copy it in the SuperRes7 repo.
 You should have this structure:
 ```
-7SuperRes
-├── 7sr_dataset
+SuperRes7
+├── sr7_dataset
 │   ├── test
 │   │   ├── blr
 │   │   └── gt
 │   └── train
 │       ├── blr
 │       └── gt
-├── 7sr_vai_flow
+├── sr7_vai_flow
 │   ├── build
 │   ├── code
 │   ├── input_model
@@ -78,7 +78,7 @@ options:
 
 Once the model is trained, it needs to be quantized and compiled with Vitis AI tools. We use version 3.0. Here is a schema representing our Vitis AI flow:
 
-![Flow Vitis AI](./doc/7sr_vai_flow.png)
+![Flow Vitis AI](./doc/sr7_vai_flow.png)
 
 ## Requirements
 - Ubuntu 22.04 host PC
@@ -105,13 +105,13 @@ Once the model is trained, it needs to be quantized and compiled with Vitis AI t
     ```
 4. You will need to install some missing packages and libraries into the Vitis AI container. Copy the file `setup_docker_env.sh` into the `Vitis-AI` folder
     ```bash
-    cd 7SuperRes
+    cd SuperRes7
     cp setup_docker_env.sh ../Vitis-AI/
     cp -r pkgs/ ../Vitis-AI/src/vai_quantizer/vai_q_tensorflow2.x/
     ```
-5. Copy the `7sr_vai_flow` and `7sr_dataset` folders into the `Vitis-AI` folder:
+5. Copy the `sr7_vai_flow` and `sr7_dataset` folders into the `Vitis-AI` folder:
     ```bash
-    cp -r 7sr_vai_flow/ 7sr_dataset/ ../Vitis-AI/
+    cp -r sr7_vai_flow/ sr7_dataset/ ../Vitis-AI/
     ```
 6. To launch the docker container with Vitis AI tools, execute the following commands from the `Vitis-AI` folder:
     ```bash
@@ -133,7 +133,7 @@ Once the model is trained, it needs to be quantized and compiled with Vitis AI t
 1. Launch the Vitis AI container. Be careful to execute `setup_docker_env.sh` script.
 2. Launch the flow :
     ```bash
-    cd 7sr_vai_flow/
+    cd sr7_vai_flow/
     ./run_model.sh
     ```
 3. Output files will be in `build/`:
@@ -163,7 +163,7 @@ You may have to make the file executable with `chmod +x run_model.sh`
 
 3. Copy the `target_zcu102` folder from the host PC to the ZCU102:
     ```bash
-    cd Vitis-AI/7sr_vai_flow/
+    cd Vitis-AI/sr7_vai_flow/
     scp -r target_zcu102/ petalinux@192.168.1.64:/home/petalinux/
     ```
     Replace the IP address with yours.
@@ -171,9 +171,9 @@ You may have to make the file executable with `chmod +x run_model.sh`
     ``` bash
     sudo -s
     ```
-5. Copy `7sr_dataset.zip` on the ZCU102:
+5. Copy `sr7_dataset.zip` on the ZCU102:
     ``` bash
-    scp 7sr_dataset.zip petalinux@192.168.1.64:/home/petalinux/
+    scp sr7_dataset.zip petalinux@192.168.1.64:/home/petalinux/
     ```
 5. On the ZCU102, execute the following script **as root** to run the model:
     ``` bash
