@@ -11,7 +11,6 @@ Download our dataset [here](https://drive.google.com/drive/folders/1xJYEhfPTt9Ox
 You should have this structure:
 ```
 7SuperRes
-├── doc
 ├── 7sr_dataset
 │   ├── test
 │   │   ├── blr
@@ -24,7 +23,9 @@ You should have this structure:
 │   ├── code
 │   ├── input_model
 │   └── target_zcu102
-└── pkgs
+├── doc
+├── pkgs
+└── training
 ```
 
 To begin with, you need to install the required packages:
