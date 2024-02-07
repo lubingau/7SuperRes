@@ -1,16 +1,14 @@
-![Logo DeepZoom](./doc/logo.png)
+# A super resolution AI on ZCU102
 
-# DeepZoom : a super resolution AI on ZCU102
-
-The DeepZoom project is an initiative by Airbus Defense and Space, proposed to students at ENSEEIHT as part of an Industrial Study Project (BEI). The objective of this project is to develop an embedded application for satellite image super-resolution using AI techniques. Ultimately, the application should be capable of being deployed on an already-orbiting satellite. The system is a sandbox (thus reconfigurable) and is equipped with an optical sensor capable of capturing RGB images with a resolution of 150 million pixels (14192x10640).
+The Super-res-n7 project is an initiative by Airbus Defense and Space, proposed to students at ENSEEIHT as part of an Industrial Study Project (BEI). The objective of this project is to develop an embedded application for satellite image super-resolution using AI techniques. Ultimately, the application should be capable of being deployed on an already-orbiting satellite. The system is a sandbox (thus reconfigurable) and is equipped with an optical sensor capable of capturing RGB images with a resolution of 150 million pixels (14192x10640).
 
 
 # How to train the model
 
-Download our dataset [here](https://drive.google.com/drive/folders/1xJYEhfPTt9Ox6RwFbfRrWGRmBvW3IX2l?usp=sharing) (extracted from [Cars Overhead With Context](https://gdo152.llnl.gov/cowc/)) and copy it in the DeepZoom repo.
+Download our dataset [here](https://drive.google.com/drive/folders/1xJYEhfPTt9Ox6RwFbfRrWGRmBvW3IX2l?usp=sharing) (extracted from [Cars Overhead With Context](https://gdo152.llnl.gov/cowc/)) and copy it in the Super-res-n7 repo.
 You should have this structure:
 ```
-DeepZoom
+Super-res-n7
 ├── doc
 ├── dz_dataset
 │   ├── test
@@ -105,7 +103,7 @@ Once the model is trained, it needs to be quantized and compiled with Vitis AI t
     ```
 4. You will need to install some missing packages and libraries into the Vitis AI container. Copy the file `setup_docker_env.sh` into the `Vitis-AI` folder
     ```bash
-    cd DeepZoom
+    cd Super-res-n7
     cp setup_docker_env.sh ../Vitis-AI/
     cp -r pkgs/ ../Vitis-AI/src/vai_quantizer/vai_q_tensorflow2.x/
     ```
