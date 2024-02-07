@@ -22,7 +22,6 @@ You should have this structure:
 ├── 7sr_vai_flow
 │   ├── build
 │   ├── code
-│   ├── dataset
 │   ├── input_model
 │   └── target_zcu102
 └── pkgs
