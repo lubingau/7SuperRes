@@ -79,7 +79,7 @@ LR_DIR = os.path.join(SAVING_DIR, "blr")
 # ==========================================================================================
 # prepare your data
 # ==========================================================================================
-print("\n[DZ INFO] Loading Test Data ...")
+print("\n[SR7 INFO] Loading Test Data ...")
 
 dir_test_input = cfg.dir_test_input
 dir_test_label = cfg.dir_test_label
@@ -111,24 +111,24 @@ print("--------> Y_test shape = ", Y_test.shape)
 # ==========================================================================================
 # Load Float and Quantized Models
 # ==========================================================================================
-print("[DZ INFO] Loading Float Model...")
+print("[SR7 INFO] Loading Float Model...")
 model = keras.models.load_model(FLOAT_H5_FILE)
 
-print("[DZ INFO] Loading Quantized Model...")
+print("[SR7 INFO] Loading Quantized Model...")
 q_model = keras.models.load_model(QUANT_H5_FILE)
 
 # ==========================================================================================
 # Evaluations
 # ==========================================================================================
 ## Float Model
-print("[DZ INFO] Evaluation with Float Model...")
+print("[SR7 INFO] Evaluation with Float Model...")
 test_results = model.evaluate(X_test, Y_test)
 if isinstance(test_results, list):
     test_results = test_results[0]
 print("--------> Results on Test Dataset with Float Model:", PSNR(test_results))
 
 ## Quantized Model
-print("[DZ INFO] Evaluation of Quantized Model...")
+print("[SR7 INFO] Evaluation of Quantized Model...")
 with vitis_quantize.quantize_scope():
     q_model.compile(optimizer="rmsprop", loss="mse")
     q_eval_results = q_model.evaluate(X_test, Y_test)
@@ -142,18 +142,18 @@ if args.save_images:
     # ==========================================================================================
 
     # Predictions of floating point model
-    print("[DZ INFO] Predictions of Floating Point Model...")
+    print("[SR7 INFO] Predictions of Floating Point Model...")
     Y_pred_float = model.predict(X_test)
     Y_pred_float = Y_pred_float - np.min(Y_pred_float)
     Y_pred_float = Y_pred_float / np.max(Y_pred_float)
 
     # Predictions of quantized model
-    print("[DZ INFO] Predictions of Quantized Model...")
+    print("[SR7 INFO] Predictions of Quantized Model...")
     Y_pred = q_model.predict(X_test)
     Y_pred = Y_pred - np.min(Y_pred)
     Y_pred = Y_pred / np.max(Y_pred)
 
-    print("[DZ INFO] Saving Images...")
+    print("[SR7 INFO] Saving Images...")
     # Save in png format
     for i in range(len(Y_pred)):
         plt.imsave(os.path.join(FLOAT_DIR, "float_" + str(i) + ".png"), Y_pred_float[i])
@@ -163,7 +163,7 @@ if args.save_images:
 
 # ==========================================================================================
         
-print("[DZ INFO] Evaluation done!\n")
+print("[SR7 INFO] Evaluation done!\n")
 
 # ==========================================================================================
 # END
