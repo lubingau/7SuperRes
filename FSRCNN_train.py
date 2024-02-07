@@ -75,19 +75,26 @@ def main(args):
                    input_size=BLR_IMG_SIZE, upscaling_factor=UPSCALING_FACTOR, color_channels=COLOR_CHANNELS)
 
     model.summary()
+
+    quantize_model = tfmot.quantization.keras.quantize_model
     
-    model.compile(optimizer=RMSprop(learning_rate=training_parameters['lr']),
+    q_aware_model = quantize_model(model)
+    
+    q_aware_model.compile(optimizer=RMSprop(learning_rate=training_parameters['lr']),
                   loss="MSE",
                   metrics=[PSNR])
     
-    history = model.fit(x_train,
+    
+    history = q_aware_model.fit(x_train,
                         y_train,
                         validation_data=(x_test, y_test),
                         epochs=training_parameters['epochs'],
                         batch_size=training_parameters['batch_size'],
                         callbacks=[PlotLossesKeras()])
     
-    model.save('dz_vai_flow/input_model/' + training_parameters['model_name'] + '.h5')
+    q_aware_model.save(training_parameters['model_name'] + '.h5')
+    
+    q_aware_model.save('dz_vai_flow/input_model/' + training_parameters['model_name'] + '.h5')
     
 if __name__ == '__main__':
 

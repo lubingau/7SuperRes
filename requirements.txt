@@ -4,3 +4,4 @@ scikit-learn
 matplotlib
 tqdm
 livelossplot
+tensorflow_model_optimization
