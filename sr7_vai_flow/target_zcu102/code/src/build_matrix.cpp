@@ -1,4 +1,4 @@
-import cv2
+/*import cv2
 import numpy as np
 
 def fill_with_1(grid, i, j ,endi, endj):
@@ -147,4 +147,4 @@ while True:
     key = cv2.waitKey(1)
     if key == ord('q') or key == ord('Q'):
         break
-cv2.destroyAllWindows()
+cv2.destroyAllWindows()*/
