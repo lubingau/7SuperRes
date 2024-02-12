@@ -26,15 +26,16 @@ dataset() {
     echo "##################################################################################"
     echo " "
 
-    if [ ! -f "../sr7_dataset.zip" ]; then
-        echo "[SR7 INFO] Dataset not found"
-        echo "[SR7 INFO] Please import the dataset and place it in the /home/petalinux/ folder"
-        exit 1
-    fi
 
     if [ ! -d "../sr7_dataset" ]; then
-        unzip ../sr7_dataset.zip -d ../
-        echo "[SR7 INFO] Dataset extracted"
+        if [ ! -f "../sr7_dataset.zip" ]; then
+            echo "[SR7 INFO] Dataset not found"
+            echo "[SR7 INFO] Please import the dataset and place it in the /home/petalinux/ folder"
+            exit 1
+        else
+            unzip ../sr7_dataset.zip -d ../
+            echo "[SR7 INFO] Dataset extracted"
+        fi
     else
         echo "[SR7 INFO] Dataset already exists"
     fi
@@ -71,10 +72,12 @@ run_models() {
     echo " "
 
     rm -r outputs 2> /dev/null
+    rm -r inputs 2> /dev/null
     mkdir outputs
+    mkdir inputs
 
     echo "[SR7 INFO] Running CNN model"
-    ./run_cnn ./fsrcnn6_relu/model/fsrcnn6_relu.xmodel  ../sr7_dataset/test/blr/ 6 0 1 2> /dev/null | tee ./rpt/logfile_cpp_fsrcnn6_relu.txt
+    ./run_cnn ./fsrcnn6_relu/model/fsrcnn6_relu.xmodel  ../sr7_dataset/test/blr/ 1 0 1 200 #2> /dev/null | tee ./rpt/logfile_cpp_fsrcnn6_relu.txt
 }
 
 run_fps() {
@@ -83,10 +86,13 @@ run_fps() {
 }
 
 # MAIN
-if [ "$1" == "--no-compilation" ]; then
+if [ -z "$1" ]; then
+    compilation=true
+elif [ "$1" == "--no-compilation" ]; then
     compilation=false
 else
-    compilation=true
+    echo "[SR7 ERROR] Wrong argument"
+    exit
 fi
 
 #clean
