@@ -9,8 +9,8 @@
 #include <sys/stat.h>
 
 
-#define IMG_HEIGHT 1419
-#define IMG_WIDTH 1672
+#define IMG_HEIGHT 2118
+#define IMG_WIDTH 2455
 
 using namespace cv;
 using namespace std;
@@ -69,9 +69,30 @@ void rebuild_image(Mat& image, const string& patch_folder) {
         int row = stoi(patch_name.substr(i_pos + 1, endi_pos - i_pos - 1));
         int col = stoi(patch_name.substr(j_pos + 1, endj_pos - j_pos - 1));
 
-        Rect patch_rect(col, row, patch.cols, patch.rows);
+        Rect patch_rect(row, col, patch.rows, patch.cols);
 
         image(patch_rect) += patch;
+    }
+}
+
+void mean_matrix(cv::Mat& image, cv::Mat& matrix, cv::Mat& reconstructed_image) {
+    // Check if the image and matrix have the same size
+    if (image.size() != matrix.size()) {
+        std::cerr << "Error: image and matrix must have the same size." << std::endl;
+        return;
+    }
+
+    // Iterate over each pixel
+    for (int y = 0; y < image.rows; ++y) {
+        for (int x = 0; x < image.cols; ++x) {
+            // Get the pixel values from image and matrix
+            cv::Vec3w image_pixel = image.at<cv::Vec3w>(y, x);
+
+            uchar matrix_pixel = matrix.at<uchar>(y, x); 
+
+            reconstructed_image.at<cv::Vec3b>(y, x) = (cv::Vec3b)(image_pixel / matrix_pixel);
+
+        }
     }
 }
 
@@ -83,10 +104,21 @@ int main(int argc, char** argv) {
 
     string patch_folder = argv[1];
 
-    Mat image(IMG_HEIGHT, IMG_WIDTH, CV_8UC3);
+    Mat image(IMG_HEIGHT, IMG_WIDTH, CV_16UC3);
 
     rebuild_image(image, patch_folder);
 
-    imwrite("reconstructed_image.png", image);
+    Mat reconstructed_image(IMG_HEIGHT, IMG_WIDTH, CV_8UC3);
+
+    Mat matrix(IMG_HEIGHT, IMG_WIDTH, CV_8U);
+    matrix = imread("/home/eau_kipik/SuperRes7/sr7_vai_flow/target_zcu102/code/src/grid.png");
+
+    cout << "Input matrix shape: "<< image.size << endl;
+    cout << "Reconstructed matrix shape: "<< reconstructed_image.size << endl;
+
+    mean_matrix(image, matrix, reconstructed_image);
+
+    imwrite("original_image.png", image);
+    imwrite("reconstructed_image.png", reconstructed_image);
     return 0;
 }

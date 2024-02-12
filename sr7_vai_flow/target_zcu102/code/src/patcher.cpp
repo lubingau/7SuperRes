@@ -26,7 +26,6 @@ void patch_image(const Mat& image, vector<Mat>& image_arr, vector<string>& name_
             string filename = folder + name + ".png";
             imwrite(filename, patch);
             
-
         }
     }
 
