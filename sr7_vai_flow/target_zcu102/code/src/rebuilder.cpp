@@ -9,9 +9,6 @@
 #include <sys/stat.h>
 
 
-#define IMG_WIDTH 1672
-#define IMG_HEIGHT 1419
-
 using namespace cv;
 using namespace std;
 
@@ -51,7 +48,7 @@ void rebuild_image(Mat& image, const string& patch_folder) {
 
     vector<string> images_list;
     ListImages(patch_folder, images_list);
-    cout << "Found " << images_list.size() << " patches\n";
+    cout << "[SR7 INFO Rebuilder] Found " << images_list.size() << " patches\n";
 
     for (const auto& patch_name : images_list) {
         string patch_path = patch_folder + "/" + patch_name;
@@ -69,7 +66,7 @@ void rebuild_image(Mat& image, const string& patch_folder) {
         int row = stoi(patch_name.substr(i_pos + 1, endi_pos - i_pos - 1));
         int col = stoi(patch_name.substr(j_pos + 1, endj_pos - j_pos - 1));
 
-        Rect patch_rect(row, col, patch.rows, patch.cols);
+        Rect patch_rect(2*row, 2*col, patch.rows, patch.cols);
 
         image(patch_rect) += patch;
     }
@@ -90,34 +87,33 @@ void rebuild_image(Mat& image, vector<Mat>& img_patch_vec, vector<string>& name_
         int row = stoi(patch_name.substr(i_pos + 1, endi_pos - i_pos - 1));
         int col = stoi(patch_name.substr(j_pos + 1, endj_pos - j_pos - 1));
 
-        Rect patch_rect(row, col, patch.rows, patch.cols);
+        Rect patch_rect(2*row, 2*col, patch.rows, patch.cols);
 
         image(patch_rect) += patch;
     }
 }
 
-void mean_matrix(Mat& image, Mat& matrix, Mat& reconstructed_image) {
+void apply_mask(Mat& image, Mat& mask, Mat& reconstructed_image) {
+    cout << image.size() << "  " << mask.size() << endl;
     // Check if the image and matrix have the same size
-    if (image.size() != matrix.size()) {
+    if (image.size() != mask.size()) {
         cerr << "[SR7 ERROR Rebuilder] image and matrix must have the same size." << endl;
         return;
     }
 
     // Iterate over each pixel
-    cout << "Image rows: " << image.rows << " Image cols: " << image.cols << endl;
-    int count1 = 0;
-    int count2 = 0;
+    cout << "[SR7 INFO Rebuilder] Image rows: " << image.rows << " Image cols: " << image.cols << endl;
+    
     for (int x = 0; x < image.rows; ++x) {
         for (int y = 0; y < image.cols; ++y) {
             // Get the pixel values from image and matrix
             Vec3w image_pixel = image.at<Vec3w>(x, y);
 
-            uchar matrix_pixel = matrix.at<uchar>(x, 3*y); // 3*y because the matrix has only 1 channel
+            uchar matrix_pixel = mask.at<uchar>(x, 3*y); // 3*y because the matrix has only 1 channel
 
             reconstructed_image.at<Vec3b>(x, y) = (Vec3b)(image_pixel / matrix_pixel);
         }
     }
-    cout << "Count 1: " << count1 << " Count 2: " << count2 << endl;
 }
 
 // int main(int argc, char** argv) {

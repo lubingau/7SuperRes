@@ -18,8 +18,8 @@ void patch_image(const Mat& image, vector<Mat>& image_arr, vector<string>& name_
 
     cout << endl;
 
-    for (int i = 0; i < image.rows - stride_pixels; i += stride_pixels) {
-        for (int j = 0; j < image.cols - stride_pixels; j += stride_pixels) {
+    for (int i = 0; i < image.rows - patch_size; i += stride_pixels) {
+        for (int j = 0; j < image.cols - patch_size; j += stride_pixels) {
             Rect patch_rect(j, i, patch_size, patch_size);
             Mat patch = image(patch_rect).clone();
 

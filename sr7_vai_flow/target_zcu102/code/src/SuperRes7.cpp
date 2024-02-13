@@ -2,9 +2,6 @@
 #include "rebuilder.cpp"
 #include "runCNN.cpp"
 
-#define IMG_HEIGHT 1419
-#define IMG_WIDTH 1672
-
 
 int main(int argc, char** argv) {
     if (argc < 4) {
@@ -20,9 +17,9 @@ int main(int argc, char** argv) {
     float stride = stof(argv[3]);
     string mask_path = argv[4];
     bool save = false;
-    if (argc == 5) {
-        outputFolder = argv[5];
-        save = true;
+    if (argc == 6) {
+         outputFolder = argv[5];
+         save = true;
     }
 
     Mat image = imread(image_path);
@@ -31,6 +28,21 @@ int main(int argc, char** argv) {
         cerr << "Error: Image not found." << endl;
         return -1;
     }
+    else{
+        cout << "[SR7 INFO] Sucessfully loaded " << image_path << " sized " << image.size() << endl;
+    }
+
+    // if (image.rows % 2 != 0) {
+    //     cout << "[SR7 WARNING] The image height is not even. Last pixels deleted" << endl;
+    //     image = image(Rect(0, 0, image.cols, image.rows - 1));
+    // }
+    // if (image.cols % 2 != 0) {
+    //     cout << "[SR7 WARNING] The image width is not even. Last pixels deleted" << endl;
+    //     image = image(Rect(0, 0, image.cols - 1, image.rows));
+    // }
+
+    size_t IMG_HEIGHT = image.rows;
+    size_t IMG_WIDTH = image.cols;
 
     vector<Mat> img_patch_vec;
     vector<string> name_vec;
@@ -44,15 +56,23 @@ int main(int argc, char** argv) {
     vector<Mat> doub_img_patch_vec;
     interpolateImages(img_patch_vec, doub_img_patch_vec);
 
-    Mat reconstructed_image(2 * IMG_HEIGHT, 2 * IMG_WIDTH, CV_16UC3);
-    rebuild_image(reconstructed_image, doub_img_patch_vec, name_vec);
-    
-    Mat mask(2 * IMG_HEIGHT, 2 * IMG_WIDTH, CV_8U);
-    mask = imread(mask_path);
-    mean_matrix(image, reconstructed_image, reconstructed_image);
+    Mat sum_image(2 * IMG_HEIGHT, 2 * IMG_WIDTH, CV_16UC3);
+    rebuild_image(sum_image, doub_img_patch_vec, name_vec);
 
-    imwrite(outputFolder + "/original_image.png", image);
-    imwrite(outputFolder + "/reconstructed_image.png", reconstructed_image);
+
+    
+    Mat reconstructed_image(2 * IMG_HEIGHT, 2 * IMG_WIDTH, CV_8UC3);
+
+    Mat mask(2 * IMG_HEIGHT, 2 * IMG_WIDTH, CV_8U);
+    
+    mask = imread(mask_path);
+    apply_mask(sum_image, mask, reconstructed_image);
+
+    sum_image.convertTo(sum_image, CV_8UC3);
+    imwrite(outputFolder + "sum_image.png", sum_image);
+
+    imwrite(outputFolder + "original_image.png", image);
+    imwrite(outputFolder + "reconstructed_image.png", reconstructed_image);
     
 
     return 0;
