@@ -8,7 +8,6 @@
 #include <dirent.h>
 #include <sys/stat.h>
 
-
 using namespace cv;
 using namespace std;
 
@@ -66,7 +65,7 @@ void rebuild_image(Mat& image, const string& patch_folder) {
         int row = stoi(patch_name.substr(i_pos + 1, endi_pos - i_pos - 1));
         int col = stoi(patch_name.substr(j_pos + 1, endj_pos - j_pos - 1));
 
-        Rect patch_rect(2*row, 2*col, patch.rows, patch.cols);
+        Rect patch_rect(2*row, 2*col, patch.rows, patch.cols); // 2*row and 2*col because the image has 2x the size of input sensor image
 
         image(patch_rect) += patch;
     }
@@ -102,8 +101,6 @@ void apply_mask(Mat& image, Mat& mask, Mat& reconstructed_image) {
     }
 
     // Iterate over each pixel
-    cout << "[SR7 INFO Rebuilder] Image rows: " << image.rows << " Image cols: " << image.cols << endl;
-    
     for (int x = 0; x < image.rows; ++x) {
         for (int y = 0; y < image.cols; ++y) {
             // Get the pixel values from image and matrix
@@ -125,17 +122,23 @@ void apply_mask(Mat& image, Mat& mask, Mat& reconstructed_image) {
 //     string patch_folder = argv[1];
 //     string path_matrix = argv[2];
 
-//     Mat image(IMG_HEIGHT, IMG_WIDTH, CV_16UC3);
+       Mat matrix;
+       matrix = imread(path_matrix);
+       matrix.convertTo(matrix, CV_8U);
+       cout << "Input matrix shape: "<< matrix.size << endl;
+
+       int IMG_HEIGHT = matrix.rows;
+       int IMG_WIDTH = matrix.cols;
+
+       Mat image(IMG_HEIGHT, IMG_WIDTH, CV_16UC3);
 
 //     rebuild_image(image, patch_folder);
 
 //     Mat reconstructed_image(IMG_HEIGHT, IMG_WIDTH, CV_8UC3);
 
-//     Mat matrix(IMG_HEIGHT, IMG_WIDTH, CV_8U);
-//     matrix = imread(path_matrix);
 
-//     cout << "Input matrix shape: "<< image.size << endl;
-//     cout << "Reconstructed matrix shape: "<< reconstructed_image.size << endl;
+       cout << "Reconstructed matrix shape: "<< reconstructed_image.size << endl;
+
 
 //     mean_matrix(image, matrix, reconstructed_image);
 
