@@ -45,21 +45,6 @@ int is_running_0 = 1;
 int num_of_images = 0;
 int num_images_x_thread = 0;
 
-int NUM_TEST_IMAGES = 200;
-
-
-uint8_t colorB[] = {128, 232, 70, 156, 153, 153, 30,  0,   35, 152,
-                    180, 60,  0,  142, 70,  100, 100, 230, 32};
-uint8_t colorG[] = {64,  35, 70, 102, 153, 153, 170, 220, 142, 251,
-                    130, 20, 0,  0,   0,   60,  80,  0,   11};
-uint8_t colorR[] = {128, 244, 70,  102, 190, 153, 250, 220, 107, 152,
-                    70,  220, 255, 0,   0,   0,   0,   0,   119};
-
-static int8_t op_move(uint8_t i) {
-  int8_t ret = int8_t(i - 128);
-  return ret >> 1;
-}
-
 
 void ListImages(string const &path, vector<string> &images_list) {
   images_list.clear();
@@ -93,11 +78,14 @@ void ListImages(string const &path, vector<string> &images_list) {
   closedir(dir);
 }
 
-void runCNN(vart::Runner *runner, int8_t *imageInputs, int8_t *FCResult)
+void runCNN(vart::Runner *runner, uint8_t *imageInputs, uint8_t *FCResult)
 {
   // get in/out tensors and dims
   auto outputTensors = runner->get_output_tensors();
+  // size of the output tensor
+  cout << "outputTensors[0]->get_shape().size() " << outputTensors[0]->get_shape().size() << endl;
   auto inputTensors = runner->get_input_tensors();
+  cout << "inputTensors[0]->get_shape().size() " << inputTensors[0]->get_shape().size() << endl;
   auto out_dims = outputTensors[0]->get_shape();
   auto in_dims = inputTensors[0]->get_shape();
   // get shape info
@@ -113,8 +101,8 @@ void runCNN(vart::Runner *runner, int8_t *imageInputs, int8_t *FCResult)
   std::vector<vart::TensorBuffer *> inputsPtr, outputsPtr;
   std::vector<std::shared_ptr<xir::Tensor>> batchTensors;
 
-  int8_t *loc_imageInputs = imageInputs;
-  int8_t *loc_FCResult = FCResult;
+  uint8_t *loc_imageInputs = imageInputs;
+  uint8_t *loc_FCResult = FCResult;
 
   cout << "inside RUN CNN " << endl;
 
@@ -155,9 +143,9 @@ void runCNN(vart::Runner *runner, int8_t *imageInputs, int8_t *FCResult)
 int main(int argc, char *argv[]) {
 
   // Check args
-  if (argc != 6) {
+  if (argc != 7) {
     cout << "Usage: run_cnn xmodel_path test_images_path thread_num (from 1 to "
-            "6) use_post_proc(1:yes, 0:no) save_results(1:yes, 0:no)"
+            "6) use_post_proc(1:yes, 0:no) save_results(1:yes, 0:no) num_of_images"
          << endl;
     return -1;
   }
@@ -167,6 +155,7 @@ int main(int argc, char *argv[]) {
   assert((num_threads <= 6) & (num_threads >= 1));
   int use_post_processing = atoi(argv[4]);
   int save_results = atoi(argv[5]);
+  int NUM_TEST_IMAGES = atoi(argv[6]);
 
   for (int i=0; i<argc; i++) cout << argv[i] << " "; cout << endl;
 
@@ -261,13 +250,15 @@ int main(int argc, char *argv[]) {
   // MEMORY ALLOCATION
 
   // Load all image filenames
-  vector<string> image_filename;
-  ListImages(baseImagePath, image_filename);
-  if (image_filename.size() == 0) {
+  vector<string> IMAGES_NAME_LIST;
+  ListImages(baseImagePath, IMAGES_NAME_LIST);
+  std::sort(IMAGES_NAME_LIST.begin(), IMAGES_NAME_LIST.end());
+
+  if (IMAGES_NAME_LIST.size() == 0) {
     cerr << "\nError: No images existing under " << baseImagePath << endl;
     exit(-1);
   } else {
-    num_of_images = image_filename.size();
+    num_of_images = IMAGES_NAME_LIST.size();
     cout << "\n Find " << num_of_images << " images" << endl;
   }
 
@@ -276,19 +267,19 @@ int main(int argc, char *argv[]) {
 
   // number of images per thread
   num_images_x_thread = num_of_images / num_threads;
-  num_images_x_thread = (num_images_x_thread / batchSize) * batchSize;
+  //num_images_x_thread = (num_images_x_thread / batchSize) * batchSize;
   cout << "\n Number of images per thread: " << num_images_x_thread << endl;
   // effective number of images as multiple of num_threads and batchSize
   num_of_images = num_images_x_thread * num_threads;
 
   // memory allocation
-  vector<Mat> imagesList;
+  vector<Mat> IMAGES_LIST;
   Mat segMat(outHeight, outWidth, CV_8UC3);
   Mat showMat(outHeight, outWidth, CV_8UC3);
   Mat image = cv::Mat(inHeight, inWidth, CV_8UC3);
 
-  int8_t *imageInputs = new int8_t[(num_of_images)*inSize];
-  int8_t *FCResult    = new int8_t[(num_of_images)*outSize];
+  uint8_t *imageInputs = new uint8_t[(num_of_images)*inSize*2];
+  uint8_t *FCResult    = new uint8_t[(num_of_images)*outSize*2];
 
 
   /////////////////////////////////////////////////////////////////////////////////////////////
@@ -298,9 +289,9 @@ int main(int argc, char *argv[]) {
 
   for (unsigned int n = 0; n < num_of_images; n++)
   {
-      image = imread(baseImagePath + image_filename[n]);
-      cout << "Reading " << image_filename[n] << endl;
-      imagesList.push_back(image);
+      image = imread(baseImagePath + IMAGES_NAME_LIST[n]);
+      // cout << "Reading " << IMAGES_NAME_LIST[n] << endl;
+      IMAGES_LIST.push_back(image);
       /*
         char s[20]; sprintf(s, "inp_%03d", n);
         cv::imshow(s,  image);
@@ -310,24 +301,25 @@ int main(int argc, char *argv[]) {
         cout << "\n writing " << format("inp_%03d.png",n) << endl;
       */
   }
+  
   cout << "\nImages loaded" << endl;
   for (unsigned int n = 0; n < num_of_images; n++)
   {
-      image = imagesList[n];
+      image = IMAGES_LIST[n];
 
       for (int y = 0; y < inHeight; y++) {
 	       for (int x = 0; x < inWidth; x++) {
             for (int c = 0; c < 3; c++) {
-              float tmp_pix = ((float) image.at<Vec3b>(y,x)[c])/127.5 -1.0;
+              float tmp_pix = ((float) image.at<Vec3b>(y,x)[c])/255;
               tmp_pix = tmp_pix * input_scale;
-              imageInputs[n*inSize + 3*(y*inWidth+x) + c  ] = (int8_t) tmp_pix; //BGR format
-              //imageInputs[n*inSize + 3*(y*inWidth+x) + 2-c] = (int8_t) tmp_pix; //RGB format
+              imageInputs[n*inSize + 3*(y*inWidth+x) + c  ] = (uint8_t) tmp_pix; //BGR format
+              //imageInputs[n*inSize + 3*(y*inWidth+x) + 2-c] = (uint8_t) tmp_pix; //RGB format
             }
 	       }
       }
 
       // if (n <= 3) {
-      //   cv::imshow(format("list_%03d.png",n),  imagesList[n]);
+      //   cv::imshow(format("list_%03d.png",n),  IMAGES_LIST[n]);
       //   cv::waitKey(1000);
       //   cv::destroyAllWindows();
       // }
@@ -343,11 +335,11 @@ int main(int argc, char *argv[]) {
 
   /*
   // just for debug
-  imagesList.begin();
+  IMAGES_LIST.begin();
   for (unsigned int n = 0; n < num_of_images; n++)
   {
-      image = imagesList[n];
-      cv::imshow(format("list_%03d", n),  imagesList[n]);
+      image = IMAGES_LIST[n];
+      cv::imshow(format("list_%03d", n),  IMAGES_LIST[n]);
       cv::waitKey(1000);
       cv::imshow(format("clone_%03d", n),  image);
       cv::waitKey(1000);
@@ -358,30 +350,30 @@ int main(int argc, char *argv[]) {
 
   // split images in chunks, each chunks for its own thead
   // avoid pointing to wrong memorycv::Mat> locations
-  int8_t *imagesInput0 =
+  uint8_t *imagesInput0 =
       imageInputs + inSize * (num_threads == 1 ? 0 * num_images_x_thread : 0);
-  int8_t *imagesInput1 =
+  uint8_t *imagesInput1 =
       imageInputs + inSize * (num_threads == 2 ? 1 * num_images_x_thread : 0);
-  int8_t *imagesInput2 =
+  uint8_t *imagesInput2 =
       imageInputs + inSize * (num_threads == 3 ? 2 * num_images_x_thread : 0);
-  int8_t *imagesInput3 =
+  uint8_t *imagesInput3 =
       imageInputs + inSize * (num_threads == 4 ? 3 * num_images_x_thread : 0);
-  int8_t *imagesInput4 =
+  uint8_t *imagesInput4 =
       imageInputs + inSize * (num_threads == 5 ? 4 * num_images_x_thread : 0);
-  int8_t *imagesInput5 =
+  uint8_t *imagesInput5 =
       imageInputs + inSize * (num_threads == 6 ? 5 * num_images_x_thread : 0);
 
-  int8_t *FCResult0 =
+  uint8_t *FCResult0 =
       FCResult + outSize * (num_threads == 1 ? 0 * num_images_x_thread : 0);
-  int8_t *FCResult1 =
+  uint8_t *FCResult1 =
       FCResult + outSize * (num_threads == 2 ? 1 * num_images_x_thread : 0);
-  int8_t *FCResult2 =
+  uint8_t *FCResult2 =
       FCResult + outSize * (num_threads == 3 ? 2 * num_images_x_thread : 0);
-  int8_t *FCResult3 =
+  uint8_t *FCResult3 =
       FCResult + outSize * (num_threads == 4 ? 3 * num_images_x_thread : 0);
-  int8_t *FCResult4 =
+  uint8_t *FCResult4 =
       FCResult + outSize * (num_threads == 5 ? 4 * num_images_x_thread : 0);
-  int8_t *FCResult5 =
+  uint8_t *FCResult5 =
       FCResult + outSize * (num_threads == 6 ? 5 * num_images_x_thread : 0);
 
 
@@ -428,92 +420,118 @@ int main(int argc, char *argv[]) {
 
 /////////////////////////////////////////////////////////////////////////////////////////////
   // POSTPROCESSING ALL THE IMAGES AT ONCE
-  if (use_post_processing == 1) {
-    cout << "\n DOING POST PROCESSING\n" << endl;
+  // if (use_post_processing == 1) {
+  //   cout << "\n DOING POST PROCESSING\n" << endl;
 
-    auto postpr_t1 = std::chrono::high_resolution_clock::now();
+  //   auto postpr_t1 = std::chrono::high_resolution_clock::now();
 
-    for (unsigned int n = 0; n < num_of_images; n++) {
-      // cout << "\nImage : " << image_filename[n] << endl;
-      image = imagesList[n].clone();
-      Mat small_img;
-      cv::resize(image, small_img, showMat.size(), 0, 0, INTER_AREA);
+  //   for (unsigned int n = 0; n < num_of_images; n++) {
+  //     // cout << "\nImage : " << IMAGES_NAME_LIST[n] << endl;
+  //     image = IMAGES_LIST[n].clone();
+  //     Mat small_img;
+  //     cv::resize(image, small_img, showMat.size(), 0, 0, INTER_AREA);
 
-      // cv::imshow("Segmentation", small_img);
-      // cv::waitKey(1000);
-      // save the image
-      // cv::imwrite(image_filename[n], image);
-      // cv::destroyAllWindows();
+  //     // cv::imshow("Segmentation", small_img);
+  //     // cv::waitKey(1000);
+  //     // save the image
+  //     // cv::imwrite(IMAGES_NAME_LIST[n], image);
+  //     // cv::destroyAllWindows();
 
-      int8_t *OutData = &FCResult[n * outSize];
-      for (int row = 0; row < outHeight; row++) {
-        for (int col = 0; col < outWidth; col++) {
-          int ii = row * outWidth * num_of_classes +
-                   col * num_of_classes;  // to map the segmented image into
-                                          // colors uncomment this line
-          auto max_ind =
-              max_element(OutData + ii, OutData + ii + num_of_classes);
-          int posit = distance(OutData + ii, max_ind);
-          segMat.at<Vec3b>(row, col) =
-              Vec3b(colorB[posit], colorG[posit], colorR[posit]);
-        }
-      }
-      for (int ii = 0; ii < showMat.rows * showMat.cols * 3; ii++) {
-        showMat.data[ii] = small_img.data[ii] * 0.4 + segMat.data[ii] * 0.6;
-      }
+  //     uint8_t *OutData = &FCResult[n * outSize];
+  //     for (int row = 0; row < outHeight; row++) {
+  //       for (int col = 0; col < outWidth; col++) {
+  //         int ii = row * outWidth * num_of_classes +
+  //                  col * num_of_classes;  // to map the segmented image into
+  //                                         // colors uncomment this line
+  //         auto max_ind =
+  //             max_element(OutData + ii, OutData + ii + num_of_classes);
+  //         int posit = distance(OutData + ii, max_ind);
+  //         segMat.at<Vec3b>(row, col) =
+  //             Vec3b(colorB[posit], colorG[posit], colorR[posit]);
+  //       }
+  //     }
+  //     for (int ii = 0; ii < showMat.rows * showMat.cols * 3; ii++) {
+  //       showMat.data[ii] = small_img.data[ii] * 0.4 + segMat.data[ii] * 0.6;
+  //     }
 
-      // // just for debug
-      // if (n <= 3) {
-      //   char s[20];
-      //   sprintf(s, "out_%03d", n);
-      //   putText(image3, s, Point(10, 10), FONT_HERSHEY_PLAIN, 1.0,
-      //          CV_RGB(0, 255, 0), 2.0);
+  //     // // just for debug
+  //     // if (n <= 3) {
+  //     //   char s[20];
+  //     //   sprintf(s, "out_%03d", n);
+  //     //   putText(image3, s, Point(10, 10), FONT_HERSHEY_PLAIN, 1.0,
+  //     //          CV_RGB(0, 255, 0), 2.0);
 
-      //   Mat dst;
-      //   cv::hconcat(small_img, segMat, dst);  // horizontal
-      //   cv::imshow(s, dst);
-      //   cv::waitKey(1000);
-      //   cv::imwrite(format("out_%03d.png", n), dst);
-      //   cv::destroyAllWindows();
-      // }
-    }
-    auto postpr_t2 = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double, std::micro> postpr_time = postpr_t2 - postpr_t1 - avg_calibr_highres;
-    cout << "\n" << endl;
-    cout << "[POSTPROC Time ] " << postpr_time.count() << "us" << endl;
-    //cout << "[POSTPROC FPS  ] " << num_of_images*1000000.0/postpr_time.count()  << endl;
-    cout << "\n" << endl;
-    total_time =  (double) postpr_time.count();
-  }
+  //     //   Mat dst;
+  //     //   cv::hconcat(small_img, segMat, dst);  // horizontal
+  //     //   cv::imshow(s, dst);
+  //     //   cv::waitKey(1000);
+  //     //   cv::imwrite(format("out_%03d.png", n), dst);
+  //     //   cv::destroyAllWindows();
+  //     // }
+  //   }
+  //   auto postpr_t2 = std::chrono::high_resolution_clock::now();
+  //   std::chrono::duration<double, std::micro> postpr_time = postpr_t2 - postpr_t1 - avg_calibr_highres;
+  //   cout << "\n" << endl;
+  //   cout << "[POSTPROC Time ] " << postpr_time.count() << "us" << endl;
+  //   //cout << "[POSTPROC FPS  ] " << num_of_images*1000000.0/postpr_time.count()  << endl;
+  //   cout << "\n" << endl;
+  //   total_time =  (double) postpr_time.count();
+  // }
 
   if (save_results == 1) {
     cout << "\n SAVING RESULTS\n" << endl;
+    string image_name;
+    int row_index, col_index;
+    cout << "Number of images: " << num_of_images << endl;
     for (unsigned int n = 0; n < num_of_images; n++) {
       
+      image_name = IMAGES_NAME_LIST[n];
+      //cout << "Input image name: " << image_name << endl;
+      // remove the extension
+      image_name = image_name.substr(0, image_name.find_last_of("."));
+      // split the name with _
+      vector<string> tokens;
+      stringstream check1(image_name);
+      string intermediate;
+      while(getline(check1, intermediate, '_'))
+      {
+          tokens.push_back(intermediate);
+      }
+
+      // indexes are 2 last tokens
+      row_index = stoi(tokens[tokens.size()-2]);
+      col_index = stoi(tokens[tokens.size()-1]);
+      //cout << "row index: " << row_index << " Col index: " << col_index << endl;
       // Assuming FCResult is a pointer to the int8 tensor containing super-resolution results
-      int8_t *OutData = &FCResult[n * outSize];
+      uint8_t *OutData = &FCResult[n * outSize];
 
       // Create a Mat to hold the super-resolved image
-      cv::Mat superResolvedImage(outHeight, outWidth, CV_8UC3);
-
+      cv::Mat superResolvedImage = cv::Mat::zeros(outHeight, outWidth, CV_8UC3);
       // Iterate over rows and columns of the super-resolved image
+      float tmp_pix;
       for (int row = 0; row < outHeight; row++) {
           for (int col = 0; col < outWidth; col++) {
-              // Calculate the starting index for the current pixel in the int8 tensor
-              int idx = (row * outWidth + col) * 3;
+              for (int c = 0; c < 3; c++) {
 
-              // Retrieve the values for each channel and convert to unsigned char
-              uchar b = static_cast<uchar>(OutData[idx]);
-              uchar g = static_cast<uchar>(OutData[idx + 1]);
-              uchar r = static_cast<uchar>(OutData[idx + 2]);
-
-              //Set the pixel values in the super-resolved image
-              superResolvedImage.at<cv::Vec3b>(row, col) = cv::Vec3b(OutData[idx], OutData[idx + 1], OutData[idx + 2]);
-              // if ((n<=3) & (row<=3) & (col<=3)) {
-              //   cout << "\n RGB : " << (int8_t) OutData[idx] << " " << (int8_t) OutData[idx+1] << " " << (int8_t) OutData[idx+2] << endl;
-              // }
+                  // float tmp_pix = ((float) image.at<Vec3b>(y,x)[c])/255;
+                  // tmp_pix = tmp_pix * input_scale;
+                  // imageInputs[n*inSize + 3*(y*inWidth+x) + 2-c] = (uint8_t) tmp_pix;
+                //   if (n+1 == 251) {
+                //     cout << "-" << row << "-" << col << "-" << c << "-";
+                //   }
+                  tmp_pix = ((float) OutData[n*outSize + 3*(row*outWidth+col) + c]);
+                //   if (n+1 == 251) {
+                //     cout << "|" << row << "|" << col << "|" << c << "|";
+                //   }
+                  //Set the pixel values in the super-resolved image
+                  superResolvedImage.at<cv::Vec3b>(row, col)[c] = tmp_pix;
+                  // if ((n<=3) & (row<=3) & (col<=3)) {
+                  //   cout << "\n RGB : " << (uint8_t) OutData[idx] << " " << (uint8_t) OutData[idx+1] << " " << (uint8_t) OutData[idx+2] << endl;
+                  // }
+              }
           }
       }
+      cout << "debug6" << endl;
 
       // Optional: Display or save the super-resolved image
       // if (n <= 3) {
@@ -522,8 +540,14 @@ int main(int argc, char *argv[]) {
       // }
 
       // Optional: Save the super-resolved image into the folder named "outputs"
-      cv::imwrite(format("outputs/super_resolved_%03d.png", n), superResolvedImage);
+      cv::imwrite(format("outputs/sr_%d_%d.png", row_index, col_index), superResolvedImage);
+      cv::imwrite(cv::format("inputs/%s.png", image_name.c_str()), IMAGES_LIST[n]);
+      // cout << "Writing " << format("outputs/sr_%d_%d.png", row_index, col_index) << endl;
+      // cout << "Writing " << cv::format("inputs/%s.png", image_name.c_str()) << endl;
+      // Display the number of image processed in live
+      cout << "Processed image " << n+1 << " out of " << num_of_images << endl;
       }
+    cout << "\n" << endl;
     }
   
 
@@ -541,8 +565,8 @@ int main(int argc, char *argv[]) {
   delete[] imageInputs;
   cout << "deleting FCResult    memory" << endl;
   delete[] FCResult;
-  cout << "deleting imagesList  memory" << endl;
-  imagesList.clear();
+  cout << "deleting IMAGES_LIST  memory" << endl;
+  IMAGES_LIST.clear();
 
   return 0;
 }
