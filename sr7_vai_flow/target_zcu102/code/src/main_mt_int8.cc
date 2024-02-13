@@ -1,12 +1,3 @@
-/*
-Copyright © 2023 Advanced Micro Devices, Inc. All rights reserved.
-SPDX-License-Identifier: MIT
-
-# Author: Daniele Bagni, Xilinx Inc
-# date:  28 Apr. 2023
-*/
-
-
 #include <assert.h>
 #include <dirent.h>
 #include <stdio.h>
@@ -54,13 +45,13 @@ void ListImages(string const &path, vector<string> &images_list) {
   struct stat s;
   lstat(path.c_str(), &s);
   if (!S_ISDIR(s.st_mode)) {
-    fprintf(stderr, "Error: %s is not a valid directory!\n", path.c_str());
+    fprintf(stderr, "[SR7 ERROR] %s is not a valid directory!\n", path.c_str());
     exit(1);
   }
 
   DIR *dir = opendir(path.c_str());
   if (dir == nullptr) {
-    fprintf(stderr, "Error: Open %s path failed.\n", path.c_str());
+    fprintf(stderr, "[SR7 ERROR] Open %s path failed.\n", path.c_str());
     exit(1);
   }
 
@@ -83,9 +74,7 @@ void runCNN(vart::Runner *runner, uint8_t *imageInputs, uint8_t *FCResult)
   // get in/out tensors and dims
   auto outputTensors = runner->get_output_tensors();
   // size of the output tensor
-  cout << "outputTensors[0]->get_shape().size() " << outputTensors[0]->get_shape().size() << endl;
   auto inputTensors = runner->get_input_tensors();
-  cout << "inputTensors[0]->get_shape().size() " << inputTensors[0]->get_shape().size() << endl;
   auto out_dims = outputTensors[0]->get_shape();
   auto in_dims = inputTensors[0]->get_shape();
   // get shape info
@@ -104,7 +93,7 @@ void runCNN(vart::Runner *runner, uint8_t *imageInputs, uint8_t *FCResult)
   uint8_t *loc_imageInputs = imageInputs;
   uint8_t *loc_FCResult = FCResult;
 
-  cout << "inside RUN CNN " << endl;
+  cout << "[SR7 INFO] Inside RUN CNN " << endl;
 
   for (unsigned int n = 0; n < num_images_x_thread; n += batchSize)  // this works correctly for either batchSize= 1 or 3
   {
@@ -166,8 +155,8 @@ int main(int argc, char *argv[]) {
   auto subgraph = get_dpu_subgraph(graph.get());
   CHECK_EQ(subgraph.size(), 1u)
       << "CNN should have one and only one dpu subgraph.";
-  LOG(INFO) << "create running for subgraph: " << subgraph[0]->get_name();
-  cout << "create running for subgraph: " << subgraph[0]->get_name() << endl;
+  LOG(INFO) << "[SR7 INFO] Create running for subgraph: " << subgraph[0]->get_name();
+  cout << "[SR7 INFO] Create running for subgraph: " << subgraph[0]->get_name() << endl;
 
   // create runners
   auto runner = vart::Runner::create_runner(subgraph[0], "run");
@@ -252,23 +241,23 @@ int main(int argc, char *argv[]) {
   // Load all image filenames
   vector<string> IMAGES_NAME_LIST;
   ListImages(baseImagePath, IMAGES_NAME_LIST);
-  std::sort(IMAGES_NAME_LIST.begin(), IMAGES_NAME_LIST.end());
+  //std::sort(IMAGES_NAME_LIST.begin(), IMAGES_NAME_LIST.end());
 
   if (IMAGES_NAME_LIST.size() == 0) {
-    cerr << "\nError: No images existing under " << baseImagePath << endl;
+    cerr << "\n[SR7 ERROR] No images existing under " << baseImagePath << endl;
     exit(-1);
   } else {
     num_of_images = IMAGES_NAME_LIST.size();
-    cout << "\n Find " << num_of_images << " images" << endl;
+    cout << "\n[SR7 INFO] Find " << num_of_images << " images" << endl;
   }
 
   if (num_of_images > NUM_TEST_IMAGES) num_of_images = NUM_TEST_IMAGES;
-  cout << "\n Max num of images to read " << num_of_images << endl;
+  cout << "\n[SR7 INFO] Max num of images to read " << num_of_images << endl;
 
   // number of images per thread
   num_images_x_thread = num_of_images / num_threads;
   //num_images_x_thread = (num_images_x_thread / batchSize) * batchSize;
-  cout << "\n Number of images per thread: " << num_images_x_thread << endl;
+  cout << "\n[SR7 INFO] Number of images per thread: " << num_images_x_thread << endl;
   // effective number of images as multiple of num_threads and batchSize
   num_of_images = num_images_x_thread * num_threads;
 
@@ -278,13 +267,13 @@ int main(int argc, char *argv[]) {
   Mat showMat(outHeight, outWidth, CV_8UC3);
   Mat image = cv::Mat(inHeight, inWidth, CV_8UC3);
 
-  uint8_t *imageInputs = new uint8_t[(num_of_images)*inSize*2];
-  uint8_t *FCResult    = new uint8_t[(num_of_images)*outSize*2];
+  uint8_t *imageInputs = new uint8_t[(num_of_images)*inSize];
+  uint8_t *FCResult    = new uint8_t[(num_of_images)*outSize];
 
 
   /////////////////////////////////////////////////////////////////////////////////////////////
   // PREPROCESSING ALL IMAGES AT ONCE
-  cout << "\n DOING PRE PROCESSING\n" << endl;
+  cout << "\n[SR7 INFO] DOING PRE PROCESSING\n" << endl;
   auto pre_t1 = std::chrono::high_resolution_clock::now();
 
   for (unsigned int n = 0; n < num_of_images; n++)
@@ -292,17 +281,9 @@ int main(int argc, char *argv[]) {
       image = imread(baseImagePath + IMAGES_NAME_LIST[n]);
       // cout << "Reading " << IMAGES_NAME_LIST[n] << endl;
       IMAGES_LIST.push_back(image);
-      /*
-        char s[20]; sprintf(s, "inp_%03d", n);
-        cv::imshow(s,  image);
-        cv::waitKey(1000);
-        cv::destroyAllWindows();
-        cv::imwrite(format("inp_%03d.png",n), image);
-        cout << "\n writing " << format("inp_%03d.png",n) << endl;
-      */
   }
   
-  cout << "\nImages loaded" << endl;
+  cout << "\n[SR7 INFO] Images loaded" << endl;
   for (unsigned int n = 0; n < num_of_images; n++)
   {
       image = IMAGES_LIST[n];
@@ -317,36 +298,16 @@ int main(int argc, char *argv[]) {
             }
 	       }
       }
-
-      // if (n <= 3) {
-      //   cv::imshow(format("list_%03d.png",n),  IMAGES_LIST[n]);
-      //   cv::waitKey(1000);
-      //   cv::destroyAllWindows();
-      // }
   }
-  cout << "\nImages loaded in the buffer" << endl;
+  cout << "\n[SR7 INFO] Images loaded in the buffer" << endl;
 
   auto pre_t2 = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double, std::micro> prepr_time = pre_t2 - pre_t1 - avg_calibr_highres;
   cout << "\n" << endl;
-  cout << "[PREPROC  Time ] " << prepr_time.count() << "us" << endl;
-  //cout << "[PREPROC  FPS  ] " << num_of_images*1000000.0/prepr_time.count()  << endl;
+  cout << "[PREPROC Time ] " << prepr_time.count() << "us" << endl;
+  cout << "[PREPROC FPS  ] " << num_of_images*1000000.0/prepr_time.count()  << endl;
   cout << "\n" << endl;
 
-  /*
-  // just for debug
-  IMAGES_LIST.begin();
-  for (unsigned int n = 0; n < num_of_images; n++)
-  {
-      image = IMAGES_LIST[n];
-      cv::imshow(format("list_%03d", n),  IMAGES_LIST[n]);
-      cv::waitKey(1000);
-      cv::imshow(format("clone_%03d", n),  image);
-      cv::waitKey(1000);
-      cv::destroyAllWindows();
-      cv::imwrite(format("clone_%03d.png",n), image);
-  }
-  */
 
   // split images in chunks, each chunks for its own thead
   // avoid pointing to wrong memorycv::Mat> locations
@@ -418,89 +379,29 @@ int main(int argc, char *argv[]) {
 
   double total_time = 0.0;
 
-/////////////////////////////////////////////////////////////////////////////////////////////
-  // POSTPROCESSING ALL THE IMAGES AT ONCE
-  // if (use_post_processing == 1) {
-  //   cout << "\n DOING POST PROCESSING\n" << endl;
-
-  //   auto postpr_t1 = std::chrono::high_resolution_clock::now();
-
-  //   for (unsigned int n = 0; n < num_of_images; n++) {
-  //     // cout << "\nImage : " << IMAGES_NAME_LIST[n] << endl;
-  //     image = IMAGES_LIST[n].clone();
-  //     Mat small_img;
-  //     cv::resize(image, small_img, showMat.size(), 0, 0, INTER_AREA);
-
-  //     // cv::imshow("Segmentation", small_img);
-  //     // cv::waitKey(1000);
-  //     // save the image
-  //     // cv::imwrite(IMAGES_NAME_LIST[n], image);
-  //     // cv::destroyAllWindows();
-
-  //     uint8_t *OutData = &FCResult[n * outSize];
-  //     for (int row = 0; row < outHeight; row++) {
-  //       for (int col = 0; col < outWidth; col++) {
-  //         int ii = row * outWidth * num_of_classes +
-  //                  col * num_of_classes;  // to map the segmented image into
-  //                                         // colors uncomment this line
-  //         auto max_ind =
-  //             max_element(OutData + ii, OutData + ii + num_of_classes);
-  //         int posit = distance(OutData + ii, max_ind);
-  //         segMat.at<Vec3b>(row, col) =
-  //             Vec3b(colorB[posit], colorG[posit], colorR[posit]);
-  //       }
-  //     }
-  //     for (int ii = 0; ii < showMat.rows * showMat.cols * 3; ii++) {
-  //       showMat.data[ii] = small_img.data[ii] * 0.4 + segMat.data[ii] * 0.6;
-  //     }
-
-  //     // // just for debug
-  //     // if (n <= 3) {
-  //     //   char s[20];
-  //     //   sprintf(s, "out_%03d", n);
-  //     //   putText(image3, s, Point(10, 10), FONT_HERSHEY_PLAIN, 1.0,
-  //     //          CV_RGB(0, 255, 0), 2.0);
-
-  //     //   Mat dst;
-  //     //   cv::hconcat(small_img, segMat, dst);  // horizontal
-  //     //   cv::imshow(s, dst);
-  //     //   cv::waitKey(1000);
-  //     //   cv::imwrite(format("out_%03d.png", n), dst);
-  //     //   cv::destroyAllWindows();
-  //     // }
-  //   }
-  //   auto postpr_t2 = std::chrono::high_resolution_clock::now();
-  //   std::chrono::duration<double, std::micro> postpr_time = postpr_t2 - postpr_t1 - avg_calibr_highres;
-  //   cout << "\n" << endl;
-  //   cout << "[POSTPROC Time ] " << postpr_time.count() << "us" << endl;
-  //   //cout << "[POSTPROC FPS  ] " << num_of_images*1000000.0/postpr_time.count()  << endl;
-  //   cout << "\n" << endl;
-  //   total_time =  (double) postpr_time.count();
-  // }
-
   if (save_results == 1) {
-    cout << "\n SAVING RESULTS\n" << endl;
+    cout << "\n[SR7 INFO] SAVING RESULTS\n" << endl;
     string image_name;
     int row_index, col_index;
-    cout << "Number of images: " << num_of_images << endl;
+    cout << "[SR7 INFO] Number of images: " << num_of_images << endl;
     for (unsigned int n = 0; n < num_of_images; n++) {
       
       image_name = IMAGES_NAME_LIST[n];
       //cout << "Input image name: " << image_name << endl;
       // remove the extension
       image_name = image_name.substr(0, image_name.find_last_of("."));
-      // split the name with _
-      vector<string> tokens;
-      stringstream check1(image_name);
-      string intermediate;
-      while(getline(check1, intermediate, '_'))
-      {
-          tokens.push_back(intermediate);
-      }
+    //   // split the name with _
+    //   vector<string> tokens;
+    //   stringstream check1(image_name);
+    //   string intermediate;
+    //   while(getline(check1, intermediate, '_'))
+    //   {
+    //       tokens.push_back(intermediate);
+    //   }
 
       // indexes are 2 last tokens
-      row_index = stoi(tokens[tokens.size()-2]);
-      col_index = stoi(tokens[tokens.size()-1]);
+    //   row_index = stoi(tokens[tokens.size()-2]);
+    //   col_index = stoi(tokens[tokens.size()-1]);
       //cout << "row index: " << row_index << " Col index: " << col_index << endl;
       // Assuming FCResult is a pointer to the int8 tensor containing super-resolution results
       uint8_t *OutData = &FCResult[n * outSize];
@@ -512,26 +413,11 @@ int main(int argc, char *argv[]) {
       for (int row = 0; row < outHeight; row++) {
           for (int col = 0; col < outWidth; col++) {
               for (int c = 0; c < 3; c++) {
-
-                  // float tmp_pix = ((float) image.at<Vec3b>(y,x)[c])/255;
-                  // tmp_pix = tmp_pix * input_scale;
-                  // imageInputs[n*inSize + 3*(y*inWidth+x) + 2-c] = (uint8_t) tmp_pix;
-                //   if (n+1 == 251) {
-                //     cout << "-" << row << "-" << col << "-" << c << "-";
-                //   }
                   tmp_pix = ((float) OutData[n*outSize + 3*(row*outWidth+col) + c]);
-                //   if (n+1 == 251) {
-                //     cout << "|" << row << "|" << col << "|" << c << "|";
-                //   }
-                  //Set the pixel values in the super-resolved image
                   superResolvedImage.at<cv::Vec3b>(row, col)[c] = tmp_pix;
-                  // if ((n<=3) & (row<=3) & (col<=3)) {
-                  //   cout << "\n RGB : " << (uint8_t) OutData[idx] << " " << (uint8_t) OutData[idx+1] << " " << (uint8_t) OutData[idx+2] << endl;
-                  // }
               }
           }
       }
-      cout << "debug6" << endl;
 
       // Optional: Display or save the super-resolved image
       // if (n <= 3) {
@@ -540,12 +426,12 @@ int main(int argc, char *argv[]) {
       // }
 
       // Optional: Save the super-resolved image into the folder named "outputs"
-      cv::imwrite(format("outputs/sr_%d_%d.png", row_index, col_index), superResolvedImage);
+      cv::imwrite(cv::format("outputs/%s.png", image_name.c_str()), superResolvedImage);
       cv::imwrite(cv::format("inputs/%s.png", image_name.c_str()), IMAGES_LIST[n]);
       // cout << "Writing " << format("outputs/sr_%d_%d.png", row_index, col_index) << endl;
       // cout << "Writing " << cv::format("inputs/%s.png", image_name.c_str()) << endl;
       // Display the number of image processed in live
-      cout << "Processed image " << n+1 << " out of " << num_of_images << endl;
+      //cout << "[SR7 INFO] Processed image " << n+1 << " out of " << num_of_images << endl;
       }
     cout << "\n" << endl;
     }
@@ -554,7 +440,7 @@ int main(int argc, char *argv[]) {
   total_time += (double) prepr_time.count();
   total_time += (double) dpu_time.count();
   //cout << "[TOTAL Computation Time (DPU+CPU)        ] " << total_time  << "us" << endl;
-  cout << "[average FPS with pre- & post-processing ] " << num_of_images*1000000.0/total_time  << "us" << endl;
+  cout << "[Average FPS with pre- & post-processing ] " << num_of_images*1000000.0/total_time  << "us" << endl;
 
 
   /////////////////////////////////////////////////////////////////////////////////////////////
@@ -567,6 +453,7 @@ int main(int argc, char *argv[]) {
   delete[] FCResult;
   cout << "deleting IMAGES_LIST  memory" << endl;
   IMAGES_LIST.clear();
+  IMAGES_NAME_LIST.clear();
 
   return 0;
 }
