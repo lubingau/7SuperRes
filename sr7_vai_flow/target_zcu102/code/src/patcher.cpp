@@ -12,6 +12,9 @@ using namespace std;
 void patch_image(const Mat& image, vector<Mat>& image_arr, vector<string>& name_arr,int patch_size, float stride, const string& folder) {
     int stride_pixels = static_cast<int>(stride * patch_size);
     int overlap = patch_size - stride_pixels;
+    int count = 0;
+
+    cout << endl;
 
     for (int i = 0; i < image.rows - stride_pixels; i += stride_pixels) {
         for (int j = 0; j < image.cols - stride_pixels; j += stride_pixels) {
@@ -25,9 +28,16 @@ void patch_image(const Mat& image, vector<Mat>& image_arr, vector<string>& name_
             
             string filename = folder + name + ".png";
             imwrite(filename, patch);
-            
+
+            count++;
+            if (count % 100 == 0){
+            cout << "\x1b[A";
+            cout << "[SR7 INFO] Patches created: " << count << endl;
+            }     
         }
     }
+
+    cout << "[SR7 INFO] Regular patches created: " << count << endl;
 
     int last_patch_j = image.cols - patch_size;
     int last_patch_i = image.rows - patch_size;
@@ -43,6 +53,8 @@ void patch_image(const Mat& image, vector<Mat>& image_arr, vector<string>& name_
         
         string filename = folder + name + ".png";
         imwrite(filename, patch);
+
+        count++; 
     }
 
     for (int j = 0; j < image.cols - patch_size; j += stride_pixels) {
@@ -69,12 +81,16 @@ void patch_image(const Mat& image, vector<Mat>& image_arr, vector<string>& name_
     string filename = folder + name + ".png";
     imwrite(filename, patch);
 
+    cout << "[SR7 INFO] Edge patches created";
+    cout << "[SR7 INFO] Total patches created: " << count << endl;
 }
 
 void patch_image(const Mat& image, vector<Mat>& image_arr, vector<string>& name_arr,int patch_size, float stride) {
     int stride_pixels = static_cast<int>(stride * patch_size);
     int overlap = patch_size - stride_pixels;
+    
     int count = 0;
+    cout << endl;
 
     for (int i = 0; i < image.rows - stride_pixels; i += stride_pixels) {
         for (int j = 0; j < image.cols - stride_pixels; j += stride_pixels) {
@@ -85,7 +101,8 @@ void patch_image(const Mat& image, vector<Mat>& image_arr, vector<string>& name_
             name_arr.push_back(name);
             count++;
             if (count % 100 == 0){
-                cout << "[SR7 INFO] Patches created: " << count << "\r";
+                cout << "\x1b[A";
+                cout << "[SR7 INFO] Patches created: " << count << endl;
             }
         }
     }
@@ -119,9 +136,7 @@ void patch_image(const Mat& image, vector<Mat>& image_arr, vector<string>& name_
     name_arr.push_back(name);
     count++;
     cout << "[SR7 INFO] Edge patches created";
-
     cout << "[SR7 INFO] Total patches created: " << count << endl;
-
 }
 
 int main(int argc, char** argv) {
@@ -140,7 +155,7 @@ int main(int argc, char** argv) {
     if (save){
         outputFolder = argv[5];
     }
-
+    cout << "[SR7 INFO] Loading image..." << endl;
     Mat image = imread(imagePath);
     if (image.empty()) {
         cout << "Error: Unable to load image from " << imagePath << endl;
