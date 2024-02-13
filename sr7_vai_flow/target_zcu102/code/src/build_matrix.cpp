@@ -96,10 +96,15 @@ void build_grid2(Mat& grid, int patch_size, int stride) {
 }
 
 
-int main() {
+int main(int argc, char** argv) {
+    if (argc != 2) {
+        cout << "Usage: ./build_matrix <image_path>\n";
+        return -1;
+    }
+
     // Chemin d'accès à l'image
-    cout << "[SR7 INFO] Loading the file..." << endl;
-    String path_sensor_image = "/home/eau_kipik/Images/2.png";
+    String path_sensor_image = argv[1];
+    cout << "[SR7 INFO] Loading the image from " << path_sensor_image << endl;
     Mat image = imread(path_sensor_image);
     cout << "[SR7 INFO] Image loaded" << endl;
     cout << "[SR7 INFO] Image shape: " << image.size() << endl;
@@ -128,13 +133,12 @@ int main() {
 
     grid.convertTo(grid, CV_8U);
     imwrite("grid.png", grid);
-    //cout << grid << endl;
 
-    // cout << "[SR7 INFO] Grid shape: " << image.size() << endl;
-    // cout << "[SR7 INFO] Patch size: " << patch_size << "x" << patch_size << endl;
-    // cout << "[SR7 INFO] Stride ratio: " << static_cast<int>(stride_ratio * 100) << "%" << endl;
-    // cout << "[SR7 INFO] Stride: " << stride << endl;
-    // cout << "[SR7 INFO] Number of patches: " << n_patches << endl;
+    cout << "[SR7 INFO] Grid shape: " << image.size() << endl;
+    cout << "[SR7 INFO] Patch size: " << patch_size << "x" << patch_size << endl;
+    cout << "[SR7 INFO] Stride ratio: " << static_cast<int>(stride_ratio * 100) << "%" << endl;
+    cout << "[SR7 INFO] Stride: " << stride << endl;
+    cout << "[SR7 INFO] Number of patches: " << n_patches << endl;
 
     // cout << "[SR7 WARNING] Press 'q' to quit (or ctrl+C in the terminal)" << endl;
     // while (true) {

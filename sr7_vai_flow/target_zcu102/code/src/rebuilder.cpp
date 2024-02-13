@@ -9,8 +9,8 @@
 #include <sys/stat.h>
 
 
-#define IMG_HEIGHT 2118
-#define IMG_WIDTH 2455
+#define IMG_WIDTH 1672
+#define IMG_HEIGHT 1419
 
 using namespace cv;
 using namespace std;
@@ -49,7 +49,7 @@ void ListImages(string const &path, vector<string> &images_list) {
 
 void rebuild_image(Mat& image, const string& patch_folder) {
 
-    std::vector<string> images_list;
+    vector<string> images_list;
     ListImages(patch_folder, images_list);
     cout << "Found " << images_list.size() << " patches\n";
 
@@ -61,10 +61,10 @@ void rebuild_image(Mat& image, const string& patch_folder) {
             return;
         }
 
-        std::size_t i_pos = patch_name.find("i");
-        std::size_t j_pos = patch_name.find("j");
-        std::size_t endi_pos = patch_name.find("endi");
-        std::size_t endj_pos = patch_name.find("endj");
+        size_t i_pos = patch_name.find("i");
+        size_t j_pos = patch_name.find("j");
+        size_t endi_pos = patch_name.find("endi");
+        size_t endj_pos = patch_name.find("endj");
 
         int row = stoi(patch_name.substr(i_pos + 1, endi_pos - i_pos - 1));
         int col = stoi(patch_name.substr(j_pos + 1, endj_pos - j_pos - 1));
@@ -75,34 +75,39 @@ void rebuild_image(Mat& image, const string& patch_folder) {
     }
 }
 
-void mean_matrix(cv::Mat& image, cv::Mat& matrix, cv::Mat& reconstructed_image) {
+void mean_matrix(Mat& image, Mat& matrix, Mat& reconstructed_image) {
     // Check if the image and matrix have the same size
     if (image.size() != matrix.size()) {
-        std::cerr << "Error: image and matrix must have the same size." << std::endl;
+        cerr << "Error: image and matrix must have the same size." << endl;
         return;
     }
 
     // Iterate over each pixel
-    for (int y = 0; y < image.rows; ++y) {
-        for (int x = 0; x < image.cols; ++x) {
+    cout << "Image rows: " << image.rows << " Image cols: " << image.cols << endl;
+    int count1 = 0;
+    int count2 = 0;
+    for (int x = 0; x < image.rows; ++x) {
+        for (int y = 0; y < image.cols; ++y) {
             // Get the pixel values from image and matrix
-            cv::Vec3w image_pixel = image.at<cv::Vec3w>(y, x);
+            Vec3w image_pixel = image.at<Vec3w>(x, y);
 
-            uchar matrix_pixel = matrix.at<uchar>(y, x); 
+            uchar matrix_pixel = matrix.at<uchar>(x, 3*y); // 3*y because the matrix has only 1 channel
 
-            reconstructed_image.at<cv::Vec3b>(y, x) = (cv::Vec3b)(image_pixel / matrix_pixel);
+            reconstructed_image.at<Vec3b>(x, y) = (Vec3b)(image_pixel / matrix_pixel);
 
         }
     }
+    cout << "Count 1: " << count1 << " Count 2: " << count2 << endl;
 }
 
 int main(int argc, char** argv) {
-    if (argc != 2) {
-        cout << "Usage: ./image_patcher <patch_folder>\n";
+    if (argc != 3) {
+        cout << "Usage: ./image_patcher <patch_folder> <path_matrix>\n";
         return -1;
     }
 
     string patch_folder = argv[1];
+    string path_matrix = argv[2];
 
     Mat image(IMG_HEIGHT, IMG_WIDTH, CV_16UC3);
 
@@ -111,13 +116,16 @@ int main(int argc, char** argv) {
     Mat reconstructed_image(IMG_HEIGHT, IMG_WIDTH, CV_8UC3);
 
     Mat matrix(IMG_HEIGHT, IMG_WIDTH, CV_8U);
-    matrix = imread("/home/eau_kipik/SuperRes7/sr7_vai_flow/target_zcu102/code/src/grid.png");
+    matrix = imread(path_matrix);
 
     cout << "Input matrix shape: "<< image.size << endl;
     cout << "Reconstructed matrix shape: "<< reconstructed_image.size << endl;
 
     mean_matrix(image, matrix, reconstructed_image);
 
+    // convert image into 8-bit
+    image.convertTo(image, CV_8UC3);
+    imwrite("matrix.png", matrix);
     imwrite("original_image.png", image);
     imwrite("reconstructed_image.png", reconstructed_image);
     return 0;
