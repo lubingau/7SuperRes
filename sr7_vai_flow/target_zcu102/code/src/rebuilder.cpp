@@ -57,9 +57,30 @@ void rebuild_image(Mat& image, const string& patch_folder) {
         string patch_path = patch_folder + "/" + patch_name;
         Mat patch = imread(patch_path);
         if (patch.empty()) {
-            cout << "Error: Unable to load patch from " << patch_path << endl;
+            cout << "[SR7 ERROR Rebuilder] Unable to load patch from " << patch_path << endl;
             return;
         }
+
+        size_t i_pos = patch_name.find("i");
+        size_t j_pos = patch_name.find("j");
+        size_t endi_pos = patch_name.find("endi");
+        size_t endj_pos = patch_name.find("endj");
+
+        int row = stoi(patch_name.substr(i_pos + 1, endi_pos - i_pos - 1));
+        int col = stoi(patch_name.substr(j_pos + 1, endj_pos - j_pos - 1));
+
+        Rect patch_rect(row, col, patch.rows, patch.cols);
+
+        image(patch_rect) += patch;
+    }
+}
+
+void rebuild_image(Mat& image, vector<Mat>& img_patch_vec, vector<string>& name_vec) {
+
+
+    for (int i=0; i<img_patch_vec.size(); i++) {
+        Mat patch = img_patch_vec[i];
+        string patch_name = name_vec[i];
 
         size_t i_pos = patch_name.find("i");
         size_t j_pos = patch_name.find("j");
@@ -78,7 +99,7 @@ void rebuild_image(Mat& image, const string& patch_folder) {
 void mean_matrix(Mat& image, Mat& matrix, Mat& reconstructed_image) {
     // Check if the image and matrix have the same size
     if (image.size() != matrix.size()) {
-        cerr << "Error: image and matrix must have the same size." << endl;
+        cerr << "[SR7 ERROR Rebuilder] image and matrix must have the same size." << endl;
         return;
     }
 
@@ -94,39 +115,38 @@ void mean_matrix(Mat& image, Mat& matrix, Mat& reconstructed_image) {
             uchar matrix_pixel = matrix.at<uchar>(x, 3*y); // 3*y because the matrix has only 1 channel
 
             reconstructed_image.at<Vec3b>(x, y) = (Vec3b)(image_pixel / matrix_pixel);
-
         }
     }
     cout << "Count 1: " << count1 << " Count 2: " << count2 << endl;
 }
 
-int main(int argc, char** argv) {
-    if (argc != 3) {
-        cout << "Usage: ./image_patcher <patch_folder> <path_matrix>\n";
-        return -1;
-    }
+// int main(int argc, char** argv) {
+//     if (argc != 3) {
+//         cout << "Usage: ./image_patcher <patch_folder> <path_matrix>\n";
+//         return -1;
+//     }
 
-    string patch_folder = argv[1];
-    string path_matrix = argv[2];
+//     string patch_folder = argv[1];
+//     string path_matrix = argv[2];
 
-    Mat image(IMG_HEIGHT, IMG_WIDTH, CV_16UC3);
+//     Mat image(IMG_HEIGHT, IMG_WIDTH, CV_16UC3);
 
-    rebuild_image(image, patch_folder);
+//     rebuild_image(image, patch_folder);
 
-    Mat reconstructed_image(IMG_HEIGHT, IMG_WIDTH, CV_8UC3);
+//     Mat reconstructed_image(IMG_HEIGHT, IMG_WIDTH, CV_8UC3);
 
-    Mat matrix(IMG_HEIGHT, IMG_WIDTH, CV_8U);
-    matrix = imread(path_matrix);
+//     Mat matrix(IMG_HEIGHT, IMG_WIDTH, CV_8U);
+//     matrix = imread(path_matrix);
 
-    cout << "Input matrix shape: "<< image.size << endl;
-    cout << "Reconstructed matrix shape: "<< reconstructed_image.size << endl;
+//     cout << "Input matrix shape: "<< image.size << endl;
+//     cout << "Reconstructed matrix shape: "<< reconstructed_image.size << endl;
 
-    mean_matrix(image, matrix, reconstructed_image);
+//     mean_matrix(image, matrix, reconstructed_image);
 
-    // convert image into 8-bit
-    image.convertTo(image, CV_8UC3);
-    imwrite("matrix.png", matrix);
-    imwrite("original_image.png", image);
-    imwrite("reconstructed_image.png", reconstructed_image);
-    return 0;
-}
+//     // convert image into 8-bit
+//     image.convertTo(image, CV_8UC3);
+//     imwrite("matrix.png", matrix);
+//     imwrite("original_image.png", image);
+//     imwrite("reconstructed_image.png", reconstructed_image);
+//     return 0;
+// }
