@@ -74,6 +74,7 @@ void patch_image(const Mat& image, vector<Mat>& image_arr, vector<string>& name_
 void patch_image(const Mat& image, vector<Mat>& image_arr, vector<string>& name_arr,int patch_size, float stride) {
     int stride_pixels = static_cast<int>(stride * patch_size);
     int overlap = patch_size - stride_pixels;
+    int count = 0;
 
     for (int i = 0; i < image.rows - stride_pixels; i += stride_pixels) {
         for (int j = 0; j < image.cols - stride_pixels; j += stride_pixels) {
@@ -82,9 +83,13 @@ void patch_image(const Mat& image, vector<Mat>& image_arr, vector<string>& name_
             string name = "i" + to_string(j) + "endi_j" + to_string(i) + "endj";
             image_arr.push_back(patch);
             name_arr.push_back(name);
-
+            count++;
+            if (count % 100 == 0){
+                cout << "[SR7 INFO] Patches created: " << count << "\r";
+            }
         }
     }
+    cout << "[SR7 INFO] Regular patches created: " << count << endl;
 
     int last_patch_j = image.cols - patch_size;
     int last_patch_i = image.rows - patch_size;
@@ -95,6 +100,7 @@ void patch_image(const Mat& image, vector<Mat>& image_arr, vector<string>& name_
         string name = "i" + to_string(last_patch_j) + "endi_j" + to_string(i) + "endj";
         image_arr.push_back(patch);
         name_arr.push_back(name);
+        count++;
     }
 
     for (int j = 0; j < image.cols - patch_size; j += stride_pixels) {
@@ -103,6 +109,7 @@ void patch_image(const Mat& image, vector<Mat>& image_arr, vector<string>& name_
         string name = "i" + to_string(j) + "endi_j" + to_string(last_patch_i) + "endj";
         image_arr.push_back(patch);
         name_arr.push_back(name);
+        count++;
     }
 
     Rect patch_rect(last_patch_j, last_patch_i, patch_size, patch_size);
@@ -110,6 +117,10 @@ void patch_image(const Mat& image, vector<Mat>& image_arr, vector<string>& name_
     string name = "i" + to_string(last_patch_j) + "endi_j" + to_string(last_patch_i) + "endj";
     image_arr.push_back(patch);
     name_arr.push_back(name);
+    count++;
+    cout << "[SR7 INFO] Edge patches created";
+
+    cout << "[SR7 INFO] Total patches created: " << count << endl;
 
 }
 
