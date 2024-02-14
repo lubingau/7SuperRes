@@ -52,8 +52,10 @@ compile() {
     if [ "$1" = true ]; then
         echo "[SR7 INFO] Compiling CNN application"
         cd code
-        bash -x ./build_app.sh
-        mv code ../SuperRes7
+        #bash -x ./build_app.sh
+        g++ -o build/SuperRes7 src/SuperRes7.cpp `pkg-config --cflags --libs opencv4`
+        g++ -o build/build_mask src/build_mask.cpp `pkg-config --cflags --libs opencv4`
+        #mv code build/SuperRes7
         # bash -x ./build_get_dpu_fps.sh
         # mv code ../get_dpu_fps
         cd ..
@@ -61,6 +63,23 @@ compile() {
     else
         echo "[SR7 INFO] Skipping CNN application compilation"
     fi
+}
+
+build_mask() {
+    echo " "
+    echo "##################################################################################"
+    echo " BUILD MASK"
+    echo "##################################################################################"
+    echo " "
+
+    png_file = $1
+    echo $png_file
+    if [ ! -d "mask" ]; then
+        mkdir mask
+    fi
+    cd mask/
+    ./../code/build/build_mask $png_file
+    cd ..
 }
 
 # now run the CNN model
@@ -78,7 +97,7 @@ run_models() {
 
     echo "[SR7 INFO] Running CNN model"
     #./run_cnn ./fsrcnn6_relu/model/fsrcnn6_relu.xmodel  ../sr7_dataset/test/blr/ 1 0 1 200 #2> /dev/null | tee ./rpt/logfile_cpp_fsrcnn6_relu.txt
-    ./SuperRes7 /home/petalinux/resized_2.png 128 0.9 /home/petalinux/target_zcu102/code/src/mask_2118_2454.png;
+    ./code/build/SuperRes7 $1 $2 $3 $4
 }
 
 run_fps() {
@@ -87,17 +106,28 @@ run_fps() {
 }
 
 # MAIN
-if [ -z "$1" ]; then
+if [ "$1" = "--build" ]; then
     compilation=true
-elif [ "$1" == "--no-compilation" ]; then
+    cd code/
+    rm -rf build/
+    mkdir build
+    cd ..
+    echo "[SR7 INFO] Deleted build folder, ready for compilation"
+elif [ "$1" = "--no-build" ]; then
     compilation=false
 else
-    echo "[SR7 ERROR] Wrong argument"
-    exit
+    echo "Usage: [--build | --no-build] [png_file] [patch_size] [stride] [mask_file]"
+    exit 1
 fi
 
+png_file=$2
+patch_size=$3
+stride=$4
+mask_file=$5
+
 #clean
-dataset
+#dataset
 compile $compilation
-run_models
+build_mask $png_file
+run_models $png_file $patch_size $stride $mask_file
 #run_fps
