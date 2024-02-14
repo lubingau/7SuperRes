@@ -92,7 +92,6 @@ void rebuild_image(Mat& image, vector<Mat>& img_patch_vec, vector<string>& name_
 }
 
 void apply_mask(Mat& image, Mat& mask, Mat& reconstructed_image) {
-    cout << image.size() << "  " << mask.size() << endl;
     // Check if the image and matrix have the same size
     if (image.size() != mask.size()) {
         cerr << "[SR7 ERROR Rebuilder] Image and mask must have the same size." << endl;

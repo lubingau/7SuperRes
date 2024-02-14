@@ -12,11 +12,11 @@ int main(int argc, char** argv) {
     }
 
     string outputFolder;
-    cout << "######### START #########\n";
+    cout << "\n ###################################### START #################################################\n" << endl;
     cout << "[SR7 INFO] SuperRes7 started...\n";
     /////////////////////////////////////////////////////////////////////////////////////////////
     // READING ARGUMENTS
-    cout << "######### LOADING IMAGE #########\n";
+    cout << "\n ###################################### LOADING IMAGE #########################################\n" << endl;
     string image_path = argv[1];
     int patch_size = stoi(argv[2]);
     float stride = stof(argv[3]);
@@ -42,7 +42,7 @@ int main(int argc, char** argv) {
 
     /////////////////////////////////////////////////////////////////////////////////////////////
     // PATCHER
-    cout << "######### PATCHER #########\n";
+    cout << "\n ###################################### PATCHER ###############################################\n" << endl;
     vector<Mat> img_patch_vec;
     vector<string> name_vec;
 
@@ -55,14 +55,14 @@ int main(int argc, char** argv) {
 
     /////////////////////////////////////////////////////////////////////////////////////////////
     // SUPER RESOLUTION IA
-    cout << "######### SUPER RESOLUTION IA #########\n";
+    cout << "\n ###################################### SUPER RESOLUTION IA ###################################\n" << endl;
     vector<Mat> doub_img_patch_vec;
     interpolateImages(img_patch_vec, doub_img_patch_vec);
     //runCNN(img_patch_vec, doub_img_patch_vec, "/home/petalinux/target_zcu102/fsrcnn6_relu/model/fsrcnn6_relu.xmodel", 1);
 
     /////////////////////////////////////////////////////////////////////////////////////////////
     // REBUILDER
-    cout << "######### REBUILDER #########\n";
+    cout << "\n ###################################### REBUILDER #############################################\n" << endl;
     Mat sum_image(2 * IMG_HEIGHT, 2 * IMG_WIDTH, CV_16UC3);
     rebuild_image(sum_image, doub_img_patch_vec, name_vec);
     
@@ -76,13 +76,13 @@ int main(int argc, char** argv) {
 
     /////////////////////////////////////////////////////////////////////////////////////////////
     // FILTER IMAGE
-    cout << "######### FILTERING #########\n";
+    cout << "\n ###################################### FILTERING #############################################\n" << endl;
     Mat filtered_image(2 * IMG_HEIGHT, 2 * IMG_WIDTH, CV_8UC3);
     bilateral_filter(reconstructed_image, filtered_image);
 
     /////////////////////////////////////////////////////////////////////////////////////////////
     // SAVE IMAGE
-    cout << "######### SAVING IMAGE #########\n";
+    cout << "\n ###################################### SAVING IMAGE ##########################################\n" << endl;
     sum_image.convertTo(sum_image, CV_8UC3);
     imwrite(outputFolder + "sum_image.png", sum_image);
     imwrite(outputFolder + "original_image.png", image);
@@ -90,6 +90,6 @@ int main(int argc, char** argv) {
     imwrite(outputFolder + "filtered_image.png", filtered_image);
     cout << "[SR7 INFO] Images saved in " << outputFolder << endl;
 
-    cout << "######### END #########\n";
+    cout << "\n ###################################### END ###################################################\n" << endl;
     return 0;
 }
