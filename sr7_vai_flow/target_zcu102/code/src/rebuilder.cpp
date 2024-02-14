@@ -122,22 +122,22 @@ void apply_mask(Mat& image, Mat& mask, Mat& reconstructed_image) {
 //     string patch_folder = argv[1];
 //     string path_matrix = argv[2];
 
-       Mat matrix;
-       matrix = imread(path_matrix);
-       matrix.convertTo(matrix, CV_8U);
-       cout << "Input matrix shape: "<< matrix.size << endl;
+    //    Mat matrix;
+    //    matrix = imread(path_matrix);
+    //    matrix.convertTo(matrix, CV_8U);
+    //    cout << "Input matrix shape: "<< matrix.size << endl;
 
-       int IMG_HEIGHT = matrix.rows;
-       int IMG_WIDTH = matrix.cols;
+    //    int IMG_HEIGHT = matrix.rows;
+    //    int IMG_WIDTH = matrix.cols;
 
-       Mat image(IMG_HEIGHT, IMG_WIDTH, CV_16UC3);
+    //    Mat image(IMG_HEIGHT, IMG_WIDTH, CV_16UC3);
 
 //     rebuild_image(image, patch_folder);
 
 //     Mat reconstructed_image(IMG_HEIGHT, IMG_WIDTH, CV_8UC3);
 
 
-       cout << "Reconstructed matrix shape: "<< reconstructed_image.size << endl;
+    //    cout << "Reconstructed matrix shape: "<< reconstructed_image.size << endl;
 
 
 //     mean_matrix(image, matrix, reconstructed_image);

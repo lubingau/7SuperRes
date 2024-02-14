@@ -53,7 +53,7 @@ compile() {
         echo "[SR7 INFO] Compiling CNN application"
         cd code
         bash -x ./build_app.sh
-        mv code ../run_cnn
+        mv code ../SuperRes7
         # bash -x ./build_get_dpu_fps.sh
         # mv code ../get_dpu_fps
         cd ..
@@ -77,7 +77,8 @@ run_models() {
     mkdir inputs
 
     echo "[SR7 INFO] Running CNN model"
-    ./run_cnn ./fsrcnn6_relu/model/fsrcnn6_relu.xmodel  ../sr7_dataset/test/blr/ 1 0 1 200 #2> /dev/null | tee ./rpt/logfile_cpp_fsrcnn6_relu.txt
+    #./run_cnn ./fsrcnn6_relu/model/fsrcnn6_relu.xmodel  ../sr7_dataset/test/blr/ 1 0 1 200 #2> /dev/null | tee ./rpt/logfile_cpp_fsrcnn6_relu.txt
+    ./SuperRes7 /home/petalinux/resized_2.png 128 0.9 /home/petalinux/target_zcu102/code/src/mask_2118_2454.png;
 }
 
 run_fps() {

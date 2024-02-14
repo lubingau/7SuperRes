@@ -1,6 +1,7 @@
 #include "patcher.cpp"
 #include "rebuilder.cpp"
 #include "runCNN.cpp"
+//#include "runCNN_test.cpp"
 
 
 int main(int argc, char** argv) {
@@ -46,6 +47,9 @@ int main(int argc, char** argv) {
 
     vector<Mat> img_patch_vec;
     vector<string> name_vec;
+    /////////////////////////////////////////////////////////////////////////////////////////////
+    // PATCHER
+    cout << "######### PATCHER #########\n"
     if (save){
         patch_image(image, img_patch_vec, name_vec, patch_size, stride, outputFolder);
     }
@@ -55,6 +59,7 @@ int main(int argc, char** argv) {
 
     vector<Mat> doub_img_patch_vec;
     interpolateImages(img_patch_vec, doub_img_patch_vec);
+    //runCNN(img_patch_vec, doub_img_patch_vec, "/home/petalinux/target_zcu102/fsrcnn6_relu/model/fsrcnn6_relu.xmodel", 1);
 
     Mat sum_image(2 * IMG_HEIGHT, 2 * IMG_WIDTH, CV_16UC3);
     rebuild_image(sum_image, doub_img_patch_vec, name_vec);
