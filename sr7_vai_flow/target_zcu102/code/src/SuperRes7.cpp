@@ -1,8 +1,8 @@
 #include "patcher.cpp"
 #include "rebuilder.cpp"
-#include "runCNN.cpp"
-//#include "runCNN_test.cpp"
-
+#include "bilateral_filter.cpp"
+//#include "runCNN.cpp"
+#include "runCNN_test.cpp"
 
 int main(int argc, char** argv) {
     if (argc < 4) {
@@ -12,7 +12,11 @@ int main(int argc, char** argv) {
     }
 
     string outputFolder;
-
+    cout << "######### START #########\n";
+    cout << "[SR7 INFO] SuperRes7 started...\n";
+    /////////////////////////////////////////////////////////////////////////////////////////////
+    // READING ARGUMENTS
+    cout << "######### LOADING IMAGE #########\n";
     string image_path = argv[1];
     int patch_size = stoi(argv[2]);
     float stride = stof(argv[3]);
@@ -26,30 +30,22 @@ int main(int argc, char** argv) {
     Mat image = imread(image_path);
 
     if (image.empty()) {
-        cerr << "Error: Image not found." << endl;
+        cerr << "[SR7 ERROR] Image not found." << endl;
         return -1;
     }
     else{
-        cout << "[SR7 INFO] Sucessfully loaded " << image_path << " sized " << image.size() << endl;
+        cout << "[SR7 INFO] Image successfully loaded " << image_path << " sized " << image.size() << endl;
     }
-
-    // if (image.rows % 2 != 0) {
-    //     cout << "[SR7 WARNING] The image height is not even. Last pixels deleted" << endl;
-    //     image = image(Rect(0, 0, image.cols, image.rows - 1));
-    // }
-    // if (image.cols % 2 != 0) {
-    //     cout << "[SR7 WARNING] The image width is not even. Last pixels deleted" << endl;
-    //     image = image(Rect(0, 0, image.cols - 1, image.rows));
-    // }
 
     size_t IMG_HEIGHT = image.rows;
     size_t IMG_WIDTH = image.cols;
 
-    vector<Mat> img_patch_vec;
-    vector<string> name_vec;
     /////////////////////////////////////////////////////////////////////////////////////////////
     // PATCHER
-    cout << "######### PATCHER #########\n"
+    cout << "######### PATCHER #########\n";
+    vector<Mat> img_patch_vec;
+    vector<string> name_vec;
+
     if (save){
         patch_image(image, img_patch_vec, name_vec, patch_size, stride, outputFolder);
     }
@@ -57,14 +53,18 @@ int main(int argc, char** argv) {
         patch_image(image, img_patch_vec, name_vec, patch_size, stride);
     }
 
+    /////////////////////////////////////////////////////////////////////////////////////////////
+    // SUPER RESOLUTION IA
+    cout << "######### SUPER RESOLUTION IA #########\n";
     vector<Mat> doub_img_patch_vec;
     interpolateImages(img_patch_vec, doub_img_patch_vec);
     //runCNN(img_patch_vec, doub_img_patch_vec, "/home/petalinux/target_zcu102/fsrcnn6_relu/model/fsrcnn6_relu.xmodel", 1);
 
+    /////////////////////////////////////////////////////////////////////////////////////////////
+    // REBUILDER
+    cout << "######### REBUILDER #########\n";
     Mat sum_image(2 * IMG_HEIGHT, 2 * IMG_WIDTH, CV_16UC3);
     rebuild_image(sum_image, doub_img_patch_vec, name_vec);
-
-
     
     Mat reconstructed_image(2 * IMG_HEIGHT, 2 * IMG_WIDTH, CV_8UC3);
 
@@ -73,12 +73,23 @@ int main(int argc, char** argv) {
     mask = imread(mask_path);
     apply_mask(sum_image, mask, reconstructed_image);
 
+
+    /////////////////////////////////////////////////////////////////////////////////////////////
+    // FILTER IMAGE
+    cout << "######### FILTERING #########\n";
+    Mat filtered_image(2 * IMG_HEIGHT, 2 * IMG_WIDTH, CV_8UC3);
+    bilateral_filter(reconstructed_image, filtered_image);
+
+    /////////////////////////////////////////////////////////////////////////////////////////////
+    // SAVE IMAGE
+    cout << "######### SAVING IMAGE #########\n";
     sum_image.convertTo(sum_image, CV_8UC3);
     imwrite(outputFolder + "sum_image.png", sum_image);
-
     imwrite(outputFolder + "original_image.png", image);
     imwrite(outputFolder + "reconstructed_image.png", reconstructed_image);
-    
+    imwrite(outputFolder + "filtered_image.png", filtered_image);
+    cout << "[SR7 INFO] Images saved in " << outputFolder << endl;
 
+    cout << "######### END #########\n";
     return 0;
 }

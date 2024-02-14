@@ -29,7 +29,7 @@ void patch_image(const Mat& image, vector<Mat>& image_arr, vector<string>& name_
             name_arr.push_back(name);
             
             string filename = folder + name + ".png";
-            imwrite(filename, patch);
+            //imwrite(filename, patch);
 
             count++;
             if (count % 100 == 0){
@@ -54,7 +54,7 @@ void patch_image(const Mat& image, vector<Mat>& image_arr, vector<string>& name_
         name_arr.push_back(name);
         
         string filename = folder + name + ".png";
-        imwrite(filename, patch);
+        //imwrite(filename, patch);
 
         count++; 
     }
@@ -69,7 +69,7 @@ void patch_image(const Mat& image, vector<Mat>& image_arr, vector<string>& name_
         name_arr.push_back(name);
         
         string filename = folder + name + ".png";
-        imwrite(filename, patch);
+        //imwrite(filename, patch);
     }
 
     Rect patch_rect(last_patch_j, last_patch_i, patch_size, patch_size);
@@ -81,7 +81,7 @@ void patch_image(const Mat& image, vector<Mat>& image_arr, vector<string>& name_
     name_arr.push_back(name);
     
     string filename = folder + name + ".png";
-    imwrite(filename, patch);
+    //imwrite(filename, patch);
 
     cout << "[SR7 INFO Patcher] Edge patches created" << endl;
     cout << "[SR7 INFO Patcher] Total patches created: " << count << endl;

@@ -19,13 +19,13 @@ void ListImages(string const &path, vector<string> &images_list) {
   struct stat s;
   lstat(path.c_str(), &s);
   if (!S_ISDIR(s.st_mode)) {
-    fprintf(stderr, "Error: %s is not a valid directory!\n", path.c_str());
+    fprintf(stderr, "[SR7 ERROR Rebuilder - ListImages] %s is not a valid directory!\n", path.c_str());
     exit(1);
   }
 
   DIR *dir = opendir(path.c_str());
   if (dir == nullptr) {
-    fprintf(stderr, "Error: Open %s path failed.\n", path.c_str());
+    fprintf(stderr, "[SR7 ERROR Rebuilder - ListImages] Open %s path failed.\n", path.c_str());
     exit(1);
   }
 
@@ -73,7 +73,6 @@ void rebuild_image(Mat& image, const string& patch_folder) {
 
 void rebuild_image(Mat& image, vector<Mat>& img_patch_vec, vector<string>& name_vec) {
 
-
     for (int i=0; i<img_patch_vec.size(); i++) {
         Mat patch = img_patch_vec[i];
         string patch_name = name_vec[i];
@@ -96,21 +95,23 @@ void apply_mask(Mat& image, Mat& mask, Mat& reconstructed_image) {
     cout << image.size() << "  " << mask.size() << endl;
     // Check if the image and matrix have the same size
     if (image.size() != mask.size()) {
-        cerr << "[SR7 ERROR Rebuilder] image and matrix must have the same size." << endl;
+        cerr << "[SR7 ERROR Rebuilder] Image and mask must have the same size." << endl;
         return;
     }
 
+    cout << "[SR7 INFO Rebuilder] Applying mask..." << endl;
     // Iterate over each pixel
     for (int x = 0; x < image.rows; ++x) {
         for (int y = 0; y < image.cols; ++y) {
             // Get the pixel values from image and matrix
             Vec3w image_pixel = image.at<Vec3w>(x, y);
 
-            uchar matrix_pixel = mask.at<uchar>(x, 3*y); // 3*y because the matrix has only 1 channel
+            uchar mask_pixel = mask.at<uchar>(x, 3*y); // 3*y because the matrix has only 1 channel
 
-            reconstructed_image.at<Vec3b>(x, y) = (Vec3b)(image_pixel / matrix_pixel);
+            reconstructed_image.at<Vec3b>(x, y) = (Vec3b)(image_pixel / mask_pixel);
         }
     }
+    cout << "[SR7 INFO Rebuilder] Mask applied!" << endl;
 }
 
 // int main(int argc, char** argv) {
