@@ -76,13 +76,14 @@ void build_grid2(Mat& grid, int patch_size, int stride) {
 
 
 int main(int argc, char** argv) {
-    if (argc != 2) {
-        cout << "Usage: ./build_matrix <image_path>\n";
+    if (argc != 3) {
+        cout << "Usage: ./build_matrix <image_path> <output_path>\n";
         return -1;
     }
 
     // Input image path
-    String path_sensor_image = argv[1];
+    string path_sensor_image = argv[1];
+    string path_output = argv[2];
     cout << "[SR7 INFO] Loading the image from " << path_sensor_image << endl;
     Mat image = imread(path_sensor_image);
     if (image.rows % 2 != 0) {
@@ -120,7 +121,7 @@ int main(int argc, char** argv) {
     //grid = 1 / grid * 255; //For display
 
     grid.convertTo(grid, CV_8U);
-    imwrite(format("mask_%d_%d.png", HEIGHT, WIDTH), grid);
+    imwrite(path_output + format("mask_%d_%d.png", HEIGHT, WIDTH), grid);
 
     cout << "[SR7 INFO] Grid shape: " << image.size() << endl;
     cout << "[SR7 INFO] Patch size: " << patch_size << "x" << patch_size << endl;
