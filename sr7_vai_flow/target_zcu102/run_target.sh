@@ -48,8 +48,7 @@ compile() {
     echo " COMPILE CNN APPLICATION"
     echo "##################################################################################"
     echo " "
-    rm -rf code/build
-    mkdir code/build
+
     if [ "$1" = true ]; then
         echo "[SR7 INFO] Compiling CNN application"
         cd code

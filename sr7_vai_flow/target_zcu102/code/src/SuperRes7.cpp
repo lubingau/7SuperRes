@@ -73,7 +73,24 @@ int main(int argc, char** argv) {
     auto start_IA = std::chrono::high_resolution_clock::now();
 
     vector<Mat> doub_img_patch_vec;
-    interpolateImages(img_patch_vec, doub_img_patch_vec);
+    //interpolateImages(img_patch_vec, doub_img_patch_vec);
+    vector<Mat> img_patch_vec_temp;
+    vector<Mat> doub_img_patch_vec_temp;
+    for (int n = 0; n < img_patch_vec.size(); n++){
+        Mat temp;
+        img_patch_vec[n].convertTo(temp, CV_16UC3);
+        img_patch_vec_temp.push_back(temp);
+        if ((n%1000==0)or(n==img_patch_vec.size()-1)){
+            cout << "\x1b[A";
+            cout << "[SR7 INFO IA] " << n+1 << " patches into DPU" << endl;
+            runCNN(img_patch_vec_temp, doub_img_patch_vec_temp, "/home/petalinux/target_zcu102/fsrcnn6_relu/model/fsrcnn6_relu.xmodel", 2);
+            for (int i = 0; i < doub_img_patch_vec_temp.size(); i++){
+                doub_img_patch_vec.push_back(doub_img_patch_vec_temp[i]);
+            }
+            img_patch_vec_temp.clear();
+            doub_img_patch_vec_temp.clear();
+        }
+    }
     //runCNN(img_patch_vec, doub_img_patch_vec, "/home/petalinux/target_zcu102/fsrcnn6_relu/model/fsrcnn6_relu.xmodel", 1);
 
     img_patch_vec.clear();
@@ -93,15 +110,18 @@ int main(int argc, char** argv) {
 
     /////////////////////////////////////////////////////////////////////////////////////////////
     // REBUILDER
-    //cout << "\n###################################### REBUILDER #############################################\n" << endl;
+    cout << "\n###################################### REBUILDER #############################################\n" << endl;
 
-    cout << "[SR7 INFO] Rebuilding image..." << endl;
     auto start_rebuilder = std::chrono::high_resolution_clock::now();
-    cout << "[SR7 INFO] Rebuilding image..." << endl;
     Mat sum_image(2 * IMG_HEIGHT, 2 * IMG_WIDTH, CV_16UC3);
-    cout << "[SR7 INFO] Sum image size: " << sum_image.size() << endl;
+    //sum_image.setTo(Scalar(3));
+    // vector<Mat> doub_img_patch_vec_temp;
+    // vector<string> name_vec_temp;
+
     rebuild_image(sum_image, doub_img_patch_vec, name_vec);
+    
     doub_img_patch_vec.clear();
+    name_vec.clear();
 
     Mat reconstructed_image(2 * IMG_HEIGHT, 2 * IMG_WIDTH, CV_8UC3);
 
@@ -122,9 +142,9 @@ int main(int argc, char** argv) {
 
     auto start_filter = std::chrono::high_resolution_clock::now();
 
-    Mat filtered_image(2 * IMG_HEIGHT, 2 * IMG_WIDTH, CV_8UC3);
-    bilateral_filter(reconstructed_image, filtered_image);
-    reconstructed_image.release();
+    // Mat filtered_image(2 * IMG_HEIGHT, 2 * IMG_WIDTH, CV_8UC3);
+    // //bilateral_filter(reconstructed_image, filtered_image);
+    // reconstructed_image.release();
 
     auto end_filter = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> duration_filter = end_filter - start_filter;
@@ -135,8 +155,8 @@ int main(int argc, char** argv) {
     //sum_image.convertTo(sum_image, CV_8UC3);
     //imwrite(output_folder + "sum_image.png", sum_image);
     //imwrite(output_folder + "original_image.png", image);
-    //imwrite(output_folder + "reconstructed_image.png", reconstructed_image);
-    imwrite(output_folder + "filtered_image.png", filtered_image);
+    imwrite(output_folder + "reconstructed_image.png", reconstructed_image);
+    //imwrite(output_folder + "filtered_image.png", filtered_image);
     
     cout << "[SR7 INFO] Images saved in " << output_folder << endl;
 
