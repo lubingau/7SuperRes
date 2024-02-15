@@ -277,7 +277,8 @@ void runCNN(vector<Mat>& inputImages, vector<Mat>& outputImages, string xmodel_p
   //vector<Mat> IMAGES_LIST;
   Mat image = cv::Mat(inHeight, inWidth, CV_8UC3);
   
-  uint8_t *inputBuffer = new uint8_t[(num_of_images)*inSize*2];
+  
+  uint8_t *inputBuffer = new uint8_t[(num_of_images)*inSize];
   uint8_t *outputBuffer    = new uint8_t[(num_of_images)*outSize*2];
 
 
