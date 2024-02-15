@@ -53,9 +53,9 @@ compile() {
     if [ "$1" = true ]; then
         echo "[SR7 INFO] Compiling CNN application"
         cd code
-        bash -x ./build_app.sh
+        #bash -x ./build_app.sh
         mv code build/SuperRes7
-        # g++ -o build/SuperRes7 src/SuperRes7.cpp `pkg-config --cflags --libs opencv4`
+        g++ -o build/SuperRes7 src/SuperRes7.cpp `pkg-config --cflags --libs opencv4`
         # g++ -o build/build_mask src/build_mask.cpp `pkg-config --cflags --libs opencv4`
         # bash -x ./build_get_dpu_fps.sh
         # mv code ../get_dpu_fps
@@ -66,19 +66,6 @@ compile() {
     fi
 }
 
-build_mask() {
-    echo " "
-    echo "##################################################################################"
-    echo " BUILD MASK"
-    echo "##################################################################################"
-    echo " "
-
-    png_file = $1
-    if [ ! -d "mask" ]; then
-        mkdir mask
-    fi
-    ./code/build/build_mask $png_file mask/
-}
 
 # now run the CNN model
 run_models() {
@@ -126,6 +113,5 @@ mask_file=$5
 #clean
 #dataset
 compile $compilation
-#build_mask $png_file
 run_models $png_file $patch_size $stride $mask_file "outputs/"
 #run_fps
