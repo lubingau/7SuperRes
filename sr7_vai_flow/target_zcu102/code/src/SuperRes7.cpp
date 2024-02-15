@@ -95,23 +95,18 @@ int main(int argc, char** argv) {
     // REBUILDER
     //cout << "\n###################################### REBUILDER #############################################\n" << endl;
 
-    cout << "[SR7 INFO] Rebuilding image..." << endl;
     auto start_rebuilder = std::chrono::high_resolution_clock::now();
+
     cout << "[SR7 INFO] Rebuilding image..." << endl;
-    Mat sum_image(2 * IMG_HEIGHT, 2 * IMG_WIDTH, CV_16UC3);
-    cout << "[SR7 INFO] Sum image size: " << sum_image.size() << endl;
-    rebuild_image(sum_image, doub_img_patch_vec, name_vec);
-    doub_img_patch_vec.clear();
 
     Mat reconstructed_image(2 * IMG_HEIGHT, 2 * IMG_WIDTH, CV_8UC3);
 
-    Mat mask(2 * IMG_HEIGHT, 2 * IMG_WIDTH, CV_8U);
-    
-    mask = imread(mask_path);
-    apply_mask(sum_image, mask, reconstructed_image);
+    cout << "[SR7 INFO] Sum image size: " << sum_image.size() << endl;
 
-    mask.release();
-    sum_image.release();
+    rebuild_image_and_mask(reconstructed_image, doub_img_patch_vec, name_vec);
+
+    doub_img_patch_vec.clear();
+
 
     auto end_rebuilder = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> duration_rebuilder = end_rebuilder - start_rebuilder;

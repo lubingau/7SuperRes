@@ -71,8 +71,12 @@ void rebuild_image(Mat& image, const string& patch_folder) {
     }
 }
 
-void rebuild_image(Mat& image, vector<Mat>& img_patch_vec, vector<string>& name_vec) {
+void rebuild_image_and_mask(Mat& image, vector<Mat>& img_patch_vec, vector<string>& name_vec) {
     cout << "[SR7 INFO Rebuilder] Found " << img_patch_vec.size() << " patches\n";
+
+    Mat mask_patch = Mat::ones(img_patch_vec[0].size(), CV_8U);
+    Mat mask(image.size(), CV_8U);
+
     for (int i=0; i<img_patch_vec.size(); i++) {
         Mat patch = img_patch_vec[i];
         string patch_name = name_vec[i];
@@ -88,19 +92,12 @@ void rebuild_image(Mat& image, vector<Mat>& img_patch_vec, vector<string>& name_
         Rect patch_rect(2*row, 2*col, patch.rows, patch.cols);
 
         image(patch_rect) += patch;
+        mask(patch_rect) += mask_patch;
 
         if (i%100 == 0) {
             cout << "\x1b[A";
             cout << "[SR7 INFO Rebuilder] " << i << " patches rebuilt" << endl;
         }
-    }
-}
-
-void apply_mask(Mat& image, Mat& mask, Mat& reconstructed_image) {
-    // Check if the image and matrix have the same size
-    if (image.size() != mask.size()) {
-        cerr << "[SR7 ERROR Rebuilder] Image and mask must have the same size." << endl;
-        return;
     }
 
     cout << "[SR7 INFO Rebuilder] Applying mask..." << endl;
@@ -112,10 +109,12 @@ void apply_mask(Mat& image, Mat& mask, Mat& reconstructed_image) {
 
             uchar mask_pixel = mask.at<uchar>(x, 3*y); // 3*y because the matrix has only 1 channel
 
-            reconstructed_image.at<Vec3b>(x, y) = (Vec3b)(image_pixel / mask_pixel);
+            image.at<Vec3b>(x, y) = (Vec3b)(image_pixel / mask_pixel);
         }
     }
     cout << "[SR7 INFO Rebuilder] Mask applied!" << endl;
+
+
 }
 
 // int main(int argc, char** argv) {
