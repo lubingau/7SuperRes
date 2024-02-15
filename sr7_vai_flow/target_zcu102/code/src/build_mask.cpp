@@ -76,58 +76,53 @@ void build_grid2(Mat& grid, int patch_size, int stride) {
 
 
 int main(int argc, char** argv) {
-    if (argc != 3) {
-        cout << "Usage: ./build_matrix <image_path> <output_path>\n";
+    if (argc != 5) {
+        cout << "Usage: ./build_matrix <image_path> <patch_size> <stride> <output_path>\n";
         return -1;
     }
 
     // Input image path
     string path_sensor_image = argv[1];
-    string path_output = argv[2];
-    cout << "[SR7 INFO] Loading the image from " << path_sensor_image << endl;
+    int patch_size = 2*stoi(argv[2]);
+    float stride = stof(argv[3]);
+    string path_output = argv[4];
+
+    cout << "[SR7 INFO MASK] Loading the image from " << path_sensor_image << endl;
     Mat image = imread(path_sensor_image);
-    if (image.rows % 2 != 0) {
-        cout << "[SR7 WARNING] The image height is not even. Last pixels deleted" << endl;
-        image = image(Rect(0, 0, image.cols, image.rows - 1));
-    }
-    if (image.cols % 2 != 0) {
-        cout << "[SR7 WARNING] The image width is not even. Last pixels deleted" << endl;
-        image = image(Rect(0, 0, image.cols - 1, image.rows));
-    }
-    cout << "[SR7 INFO] Image loaded" << endl;
-    cout << "[SR7 INFO] Image shape: " << image.size() << endl;
+    cout << "[SR7 INFO MASK] Image loaded" << endl;
+    cout << "[SR7 INFO MASK] Image shape: " << image.size() << endl;
     int WIDTH = 2*image.cols;
     int HEIGHT = 2*image.rows;
 
-    // Patches parameters
-    int patch_size = 256;
-    double stride_ratio = 0.1;
-    int stride = static_cast<int>((1 - stride_ratio) * patch_size);
-    int n_patches_i = image.rows / stride;
-    int n_patches_j = image.cols / stride;
+    // Patches
+    int stride_pixels = int(stride * patch_size);
+    int n_patches_i = int(HEIGHT / stride_pixels);
+    int n_patches_j = int(WIDTH / stride_pixels);
     int n_patches_edge = n_patches_i + n_patches_j + 1;
     int n_patches = n_patches_i * n_patches_j + n_patches_edge;
 
-    Mat grid0(image.rows, image.cols, CV_8U, Scalar(0));
-    Mat grid1(image.rows, image.cols, CV_8U, Scalar(0));
-    Mat grid2(image.rows, image.cols, CV_8U, Scalar(0));
+    cout << "[SR7 INFO MASK] Creating the mask..." << endl;
+    Mat grid0(HEIGHT, WIDTH, CV_8U, Scalar(0));
+    Mat grid1(HEIGHT, WIDTH, CV_8U, Scalar(0));
+    Mat grid2(HEIGHT, WIDTH, CV_8U, Scalar(0));
 
     build_grid0(grid0, patch_size, stride);
     build_grid1(grid1, patch_size, stride);
     build_grid2(grid2, patch_size, stride);
 
     Mat grid = grid0 + grid1 + grid2;
+    cout << "[SR7 INFO MASK] Mask created" << endl;
 
     //grid = 1 / grid * 255; //For display
 
     grid.convertTo(grid, CV_8U);
     imwrite(path_output + format("mask_%d_%d.png", HEIGHT, WIDTH), grid);
 
-    cout << "[SR7 INFO] Grid shape: " << image.size() << endl;
-    cout << "[SR7 INFO] Patch size: " << patch_size << "x" << patch_size << endl;
-    cout << "[SR7 INFO] Stride ratio: " << static_cast<int>(stride_ratio * 100) << "%" << endl;
-    cout << "[SR7 INFO] Stride: " << stride << endl;
-    cout << "[SR7 INFO] Number of patches: " << n_patches << endl;
+    cout << "[SR7 INFO MASK] Mask shape: " << grid.size() << endl;
+    cout << "[SR7 INFO MASK] Patch size: " << patch_size << "x" << patch_size << endl;
+    cout << "[SR7 INFO MASK] Stride ratio: " << stride << "%" << endl;
+    cout << "[SR7 INFO MASK] Stride: " << stride_pixels << endl;
+    cout << "[SR7 INFO MASK] Number of patches: " << n_patches << endl;
 
     // cout << "[SR7 WARNING] Press 'q' to quit (or ctrl+C in the terminal)" << endl;
     // while (true) {
