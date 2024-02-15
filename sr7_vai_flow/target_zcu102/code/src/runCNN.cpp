@@ -399,13 +399,13 @@ void runCNN(vector<Mat>& inputImages, vector<Mat>& outputImages, string xmodel_p
     uint8_t *OutData = &outputBuffer[n * outSize];
     // Iterate over rows and columns of the super-resolved image
     float tmp_pix;
+    int B_pix, G_pix, R_pix;
     for (int row = 0; row < outHeight; row++) {
         for (int col = 0; col < outWidth; col++) {
-            for (int c = 0; c < 3; c++) {
-                tmp_pix = ((float) OutData[n*outSize + 3*(row*outWidth+col) + c]);
-                //cout << "tmp_pix: " << tmp_pix << endl;
-                superResolvedImage.at<cv::Vec3b>(row, col)[c] = tmp_pix;
-            }
+            B_pix = ((float) OutData[n*outSize + 3*(row*outWidth+col) + 0]);
+            G_pix = ((float) OutData[n*outSize + 3*(row*outWidth+col) + 1]);
+            R_pix = ((float) OutData[n*outSize + 3*(row*outWidth+col) + 2]);
+            superResolvedImage.at<cv::Vec3b>(row, col) = Vec3b(B_pix, G_pix, R_pix);
         }
     }
     outputImages.push_back(superResolvedImage);

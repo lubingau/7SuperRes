@@ -72,7 +72,7 @@ void rebuild_image(Mat& image, const string& patch_folder) {
 }
 
 void rebuild_image(Mat& image, vector<Mat>& img_patch_vec, vector<string>& name_vec) {
-
+    cout << "[SR7 INFO Rebuilder] Found " << img_patch_vec.size() << " patches\n";
     for (int i=0; i<img_patch_vec.size(); i++) {
         Mat patch = img_patch_vec[i];
         string patch_name = name_vec[i];
@@ -88,6 +88,11 @@ void rebuild_image(Mat& image, vector<Mat>& img_patch_vec, vector<string>& name_
         Rect patch_rect(2*row, 2*col, patch.rows, patch.cols);
 
         image(patch_rect) += patch;
+
+        if (i%100 == 0) {
+            cout << "\x1b[A";
+            cout << "[SR7 INFO Rebuilder] " << i << " patches rebuilt" << endl;
+        }
     }
 }
 
