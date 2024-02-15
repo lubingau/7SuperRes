@@ -16,12 +16,12 @@ int main(int argc, char** argv) {
         return -1;
     }
 
-    cout << "\n ###################################### START #################################################\n" << endl;
+    cout << "\n###################################### START #################################################\n" << endl;
     cout << "[SR7 INFO] SuperRes7 started...\n";
 
     /////////////////////////////////////////////////////////////////////////////////////////////
     // READING ARGUMENTS
-    cout << "\n ###################################### LOADING IMAGE #########################################\n" << endl;
+    cout << "\n###################################### LOADING IMAGE #########################################\n" << endl;
     string output_patch_folder;
     string image_path = argv[1];
     int patch_size = stoi(argv[2]);
@@ -49,7 +49,7 @@ int main(int argc, char** argv) {
 
     /////////////////////////////////////////////////////////////////////////////////////////////
     // PATCHER
-    cout << "\n ###################################### PATCHER ###############################################\n" << endl;
+    cout << "\n###################################### PATCHER ###############################################\n" << endl;
 
     auto start_patcher = std::chrono::high_resolution_clock::now();
 
@@ -67,7 +67,7 @@ int main(int argc, char** argv) {
 
     /////////////////////////////////////////////////////////////////////////////////////////////
     // SUPER RESOLUTION IA
-    cout << "\n ###################################### SUPER RESOLUTION IA ###################################\n" << endl;
+    cout << "\n###################################### SUPER RESOLUTION IA ###################################\n" << endl;
 
     auto start_IA = std::chrono::high_resolution_clock::now();
 
@@ -80,7 +80,7 @@ int main(int argc, char** argv) {
 
     /////////////////////////////////////////////////////////////////////////////////////////////
     // REBUILDER
-    cout << "\n ###################################### REBUILDER #############################################\n" << endl;
+    cout << "\n###################################### REBUILDER #############################################\n" << endl;
 
     auto start_rebuilder = std::chrono::high_resolution_clock::now();
 
@@ -99,7 +99,7 @@ int main(int argc, char** argv) {
 
     /////////////////////////////////////////////////////////////////////////////////////////////
     // FILTER IMAGE
-    cout << "\n ###################################### FILTERING #############################################\n" << endl;
+    cout << "\n###################################### FILTERING #############################################\n" << endl;
 
     auto start_filter = std::chrono::high_resolution_clock::now();
 
@@ -111,7 +111,7 @@ int main(int argc, char** argv) {
 
     /////////////////////////////////////////////////////////////////////////////////////////////
     // SAVE IMAGE
-    cout << "\n ###################################### SAVING IMAGE ##########################################\n" << endl;
+    cout << "\n###################################### SAVING IMAGE ##########################################\n" << endl;
     sum_image.convertTo(sum_image, CV_8UC3);
     imwrite(output_folder + "sum_image.png", sum_image);
     imwrite(output_folder + "original_image.png", image);
@@ -120,10 +120,21 @@ int main(int argc, char** argv) {
     
     cout << "[SR7 INFO] Images saved in " << output_folder << endl;
 
-    cout << "\n ###################################### END ###################################################\n" << endl;
+    /////////////////////////////////////////////////////////////////////////////////////////////
+    // EXECUTION TIMES
+    cout << "\n###################################### EXECUTION TIMES #######################################\n" << endl;
 
     auto end_global = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> duration_global = end_global - start_global;
-    std::cout << "Time taken in total: " << duration_global.count() << " seconds" << std::endl;
+
+    //Execution time
+    std::cout << "[SR7 INFO] EXECUTION TIMES:" << std::endl;
+    std::cout << " _____________________________________________________________________" << std::endl;
+    std::cout << "|    Patcher   |     IA    |   Rebuilder  |     Filter    |   Total   |" << std::endl;
+    std::cout << "|     " << std::fixed << std::setprecision(3) << duration_patcher.count() << "s   |   " << duration_IA.count() << "s  |     " << duration_rebuilder.count() << "s   |     " << duration_filter.count() << "s    |   " << duration_global.count() << "s  |" << std::endl;
+    std::cout << " ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾" << std::endl;
+    
+    cout << "\n###################################### END ###################################################\n" << endl;
+
     return 0;
 }
