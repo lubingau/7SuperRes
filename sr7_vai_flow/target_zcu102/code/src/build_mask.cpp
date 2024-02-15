@@ -96,8 +96,8 @@ int main(int argc, char** argv) {
     }
     cout << "[SR7 INFO] Image loaded" << endl;
     cout << "[SR7 INFO] Image shape: " << image.size() << endl;
-    int WIDTH = image.cols;
-    int HEIGHT = image.rows;
+    int WIDTH = 2*image.cols;
+    int HEIGHT = 2*image.rows;
 
     // Patches parameters
     int patch_size = 256;
