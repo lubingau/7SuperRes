@@ -52,9 +52,9 @@ compile() {
     if [ "$1" = true ]; then
         echo "[SR7 INFO] Compiling CNN application"
         cd code
-        #bash -x ./build_app.sh
+        bash -x ./build_app.sh
         mv code build/SuperRes7
-        g++ -o build/SuperRes7 src/SuperRes7.cpp `pkg-config --cflags --libs opencv4`
+        #g++ -o build/SuperRes7 src/SuperRes7.cpp `pkg-config --cflags --libs opencv4`
         # g++ -o build/build_mask src/build_mask.cpp `pkg-config --cflags --libs opencv4`
         # bash -x ./build_get_dpu_fps.sh
         # mv code ../get_dpu_fps

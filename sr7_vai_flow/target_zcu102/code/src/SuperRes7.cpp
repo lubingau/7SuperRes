@@ -143,10 +143,9 @@ int main(int argc, char** argv) {
     /////////////////////////////////////////////////////////////////////////////////////////////
     // SAVE IMAGE
     cout << "\n###################################### SAVING IMAGE ##########################################\n" << endl;
-
-    auto start_save = std::chrono::high_resolution_clock::now();
-
-    imwrite(output_folder + "original_image.png", image);
+    //sum_image.convertTo(sum_image, CV_8UC3);
+    //imwrite(output_folder + "sum_image.png", sum_image);
+    //imwrite(output_folder + "original_image.png", image);
     imwrite(output_folder + "reconstructed_image.png", reconstructed_image);
     
     cout << "[SR7 INFO] Images saved in " << output_folder << endl;
