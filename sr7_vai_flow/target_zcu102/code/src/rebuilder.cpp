@@ -72,12 +72,13 @@ void rebuild_image(Mat& image, const string& patch_folder) {
 }
 
 void rebuild_image_and_mask(Mat& image, vector<Mat>& img_patch_vec, vector<string>& name_vec) {
-    cout << "[SR7 INFO Rebuilder] Found " << img_patch_vec.size() << " patches\n";
+    cout << "[SR7 INFO Rebuilder] Starting to rebuild image..." << endl;
+    cout << "[SR7 INFO Rebuilder] Found " << img_patch_vec.size() << " patches" << endl;
 
     Mat mask_patch = Mat::ones(img_patch_vec[0].size(), CV_8U);
     Mat mask(image.size(), CV_8U);
-
-    for (int i=0; i<img_patch_vec.size(); i++) {
+    int num_of_images = img_patch_vec.size();
+    for (int i=0; i<num_of_images; i++) {
         Mat patch = img_patch_vec[i];
         string patch_name = name_vec[i];
 
@@ -112,9 +113,8 @@ void rebuild_image_and_mask(Mat& image, vector<Mat>& img_patch_vec, vector<strin
             image.at<Vec3b>(x, y) = (Vec3b)(image_pixel / mask_pixel);
         }
     }
+    image.convertTo(image, CV_8UC3);
     cout << "[SR7 INFO Rebuilder] Mask applied!" << endl;
-
-
 }
 
 // int main(int argc, char** argv) {

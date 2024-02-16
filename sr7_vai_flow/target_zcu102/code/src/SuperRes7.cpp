@@ -3,16 +3,16 @@
 #include "patcher.cpp"
 #include "rebuilder.cpp"
 #include "bilateral_filter.cpp"
-#include "runCNN.cpp"
-//#include "runCNN_test.cpp"
+//#include "runCNN.cpp"
+#include "runCNN_test.cpp"
 
 int main(int argc, char** argv) {
 
     auto start_global = std::chrono::high_resolution_clock::now();
 
-    if (argc < 4) {
-        cout << "Usage with img saving: ./SuperRes7 <image_path> <patch_size> <stride> <mask_path> <output_folder> <output_patch_folder>\n";
-        cout << "Usage with w/ saving: ./SuperRes7 <image_path> <patch_size> <stride> <mask_path> <output_folder>\n";
+    if (argc < 5) {
+        cout << "Usage with img saving: ./SuperRes7 <image_path> <patch_size> <stride> <output_folder> <output_patch_folder>\n";
+        cout << "Usage with w/ saving: ./SuperRes7 <image_path> <patch_size> <stride> <output_folder>\n";
         return -1;
     }
 
@@ -26,13 +26,14 @@ int main(int argc, char** argv) {
     string image_path = argv[1];
     int patch_size = stoi(argv[2]);
     float stride = stof(argv[3]);
-    string mask_path = argv[4];
-    string output_folder = argv[5];
+    string output_folder = argv[4];
     bool save = false;
     if (argc == 7) {
-         output_patch_folder = argv[6];
+         output_patch_folder = argv[5];
          save = true;
     }
+
+    auto start_load = std::chrono::high_resolution_clock::now();
 
     Mat image = imread(image_path);
 
@@ -43,6 +44,9 @@ int main(int argc, char** argv) {
     else{
         cout << "[SR7 INFO] Image successfully loaded " << image_path << " sized " << image.size() << endl;
     }
+
+    auto end_load = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> duration_load = end_load - start_load;
 
     size_t IMG_HEIGHT = image.rows;
     size_t IMG_WIDTH = image.cols;
@@ -61,7 +65,7 @@ int main(int argc, char** argv) {
     else{
         patch_image(image, img_patch_vec, name_vec, patch_size, stride);
     }
-    image.release();
+    //image.release();
 
     auto end_patcher = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> duration_patcher = end_patcher - start_patcher;
@@ -73,7 +77,7 @@ int main(int argc, char** argv) {
     auto start_IA = std::chrono::high_resolution_clock::now();
 
     vector<Mat> doub_img_patch_vec;
-    //interpolateImages(img_patch_vec, doub_img_patch_vec);
+    
     vector<Mat> img_patch_vec_temp;
     vector<Mat> doub_img_patch_vec_temp;
     for (int n = 0; n < img_patch_vec.size(); n++){
@@ -83,7 +87,8 @@ int main(int argc, char** argv) {
         if ((n%1000==0)or(n==img_patch_vec.size()-1)){
             cout << "\x1b[A";
             cout << "[SR7 INFO IA] " << n+1 << " patches into DPU" << endl;
-            runCNN(img_patch_vec_temp, doub_img_patch_vec_temp, "/home/petalinux/target_zcu102/fsrcnn6_relu/model/fsrcnn6_relu.xmodel", 2);
+            //runCNN(img_patch_vec_temp, doub_img_patch_vec_temp, "/home/petalinux/target_zcu102/fsrcnn6_relu/model/fsrcnn6_relu.xmodel", 2);
+            interpolateImages(img_patch_vec_temp, doub_img_patch_vec_temp);
             for (int i = 0; i < doub_img_patch_vec_temp.size(); i++){
                 doub_img_patch_vec.push_back(doub_img_patch_vec_temp[i]);
             }
@@ -113,29 +118,11 @@ int main(int argc, char** argv) {
     cout << "\n###################################### REBUILDER #############################################\n" << endl;
 
     auto start_rebuilder = std::chrono::high_resolution_clock::now();
-<<<<<<< HEAD
-    Mat sum_image(2 * IMG_HEIGHT, 2 * IMG_WIDTH, CV_16UC3);
-    //sum_image.setTo(Scalar(3));
-    // vector<Mat> doub_img_patch_vec_temp;
-    // vector<string> name_vec_temp;
 
-    rebuild_image(sum_image, doub_img_patch_vec, name_vec);
-    
+    Mat reconstructed_image(2 * IMG_HEIGHT, 2 * IMG_WIDTH, CV_16UC3);
+    rebuild_image_and_mask(reconstructed_image, doub_img_patch_vec, name_vec);
     doub_img_patch_vec.clear();
     name_vec.clear();
-=======
-
-    cout << "[SR7 INFO] Rebuilding image..." << endl;
->>>>>>> 671dab216689c4b98e0f1f84a18e824aed2c9f37
-
-    Mat reconstructed_image(2 * IMG_HEIGHT, 2 * IMG_WIDTH, CV_8UC3);
-
-    cout << "[SR7 INFO] Sum image size: " << sum_image.size() << endl;
-
-    rebuild_image_and_mask(reconstructed_image, doub_img_patch_vec, name_vec);
-
-    doub_img_patch_vec.clear();
-
 
     auto end_rebuilder = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> duration_rebuilder = end_rebuilder - start_rebuilder;
@@ -156,13 +143,16 @@ int main(int argc, char** argv) {
     /////////////////////////////////////////////////////////////////////////////////////////////
     // SAVE IMAGE
     cout << "\n###################################### SAVING IMAGE ##########################################\n" << endl;
-    //sum_image.convertTo(sum_image, CV_8UC3);
-    //imwrite(output_folder + "sum_image.png", sum_image);
-    //imwrite(output_folder + "original_image.png", image);
+
+    auto start_save = std::chrono::high_resolution_clock::now();
+
+    imwrite(output_folder + "original_image.png", image);
     imwrite(output_folder + "reconstructed_image.png", reconstructed_image);
-    //imwrite(output_folder + "filtered_image.png", filtered_image);
     
     cout << "[SR7 INFO] Images saved in " << output_folder << endl;
+
+    auto end_save = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> duration_save = end_save - start_save;
 
     /////////////////////////////////////////////////////////////////////////////////////////////
     // EXECUTION TIMES
@@ -173,11 +163,11 @@ int main(int argc, char** argv) {
 
     //Execution time
     std::cout << "[SR7 INFO] EXECUTION TIMES:" << std::endl;
-    std::cout << " _____________________________________________________________________" << std::endl;
-    std::cout << "|    Patcher   |     IA    |   Rebuilder  |     Filter    |   Total   |" << std::endl;
-    std::cout << "|     " << std::fixed << std::setprecision(3) << duration_patcher.count() << "s   |   " << duration_IA.count() << "s  |     " << duration_rebuilder.count() << "s   |     " << duration_filter.count() << "s    |   " << duration_global.count() << "s  |" << std::endl;
-    std::cout << " ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾" << std::endl;
-    
+    std::cout << " __________________________________________________________________________________________________" << std::endl;
+    std::cout << "|    Load      |    Patcher   |     IA    |   Rebuilder  |     Filter    |     Save    |   Total   |" << std::endl;
+    std::cout << "|     " << std::fixed << std::setprecision(3) <<  duration_load.count() << "s   |    "<<  duration_patcher.count() << "s    |   " << duration_IA.count() << "s  |     " << duration_rebuilder.count() << "s   |     " << duration_filter.count() << "s    |    " <<  duration_save.count() << "s   |   " << duration_global.count() << "s  |" << std::endl;
+    std::cout << " ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾" << std::endl;
+
     cout << "\n###################################### END ###################################################\n" << endl;
 
     return 0;
