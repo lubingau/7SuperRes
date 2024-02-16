@@ -1,5 +1,7 @@
 # LICENSES
 
+![architecture](doc/architecture_SuperRes7.png)
+
 - [**Apache 2.0 License**](https://www.apache.org/licenses/LICENSE-2.0): The Apache 2.0 License is permissive. It allows you to use, modify, and distribute the licensed software, including creating derivative works, without requiring those derivative works to be licensed under the same terms.
 
 - [**The 2-Clause BSD License**](https://opensource.org/license/bsd-2-clause/): The BSD License allows users to do almost anything with the software, including modifying, distributing, and using it for commercial purposes, without imposing significant restrictions on how the software can be used or distributed.
