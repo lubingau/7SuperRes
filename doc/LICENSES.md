@@ -10,7 +10,7 @@
 
 - [**GPL License (GNU General Public License)**](https://www.gnu.org/licenses/gpl-3.0.html): The GPL License is designed to ensure that software distributed under its terms remains free and open, allowing users to access, modify, and distribute the software freely.
 
-- [**Matplotlib license**](https://github.com/matplotlib/matplotlib/blob/main/LICENSE/LICENSE): The Matplotlib License is a permissive open-source license that allows for the free use, modification, and distribution of the library, including for commercial purposes, with certain conditions.
+- [**Matplotlib License**](https://github.com/matplotlib/matplotlib/blob/main/LICENSE/LICENSE): The Matplotlib License is a permissive open-source license that allows for the free use, modification, and distribution of the library, including for commercial purposes, with certain conditions.
 
 - [**MIT**](https://opensource.org/license/mit/): MIT license allows users to do almost anything they want with the software, as long as they include the original copyright notice and disclaimer.
 
