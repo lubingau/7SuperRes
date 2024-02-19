@@ -2,8 +2,6 @@
 
 ![architecture](./architecture_SuperRes7.png)
 
----
-
 ## IA training
 
 #### **create_dataset.py**
@@ -129,7 +127,6 @@
 
 // voir training
 
----
 ## Target
 
 #### **build_app.sh**
@@ -309,8 +306,6 @@
   </details>
 </details>
 //vitisAI
-
----
 
 ## Vitis AI
 
