@@ -4,17 +4,14 @@
 
 ### **rebuilder.cpp** 
 <details>
-
-- [The 2-Clause BSD License](#option-1)
+- [The 2-Clause BSD License]
   <details>
   OpenCV
   </details>
-
-- [GPL License (GNU General Public License)](#option-2)
+- [GPL License (GNU General Public License)]
   <details>
   iostream, string, vector, dirent.h, sys/stat.h
   </details>
-
 </details>
 
 - [**Apache 2.0 License**](https://www.apache.org/licenses/LICENSE-2.0): The Apache 2.0 License is permissive. It allows you to use, modify, and distribute the licensed software, including creating derivative works, without requiring those derivative works to be licensed under the same terms.
