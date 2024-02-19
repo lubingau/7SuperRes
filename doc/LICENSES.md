@@ -343,6 +343,7 @@
   
   - libgfortran4
   </details>
+</details>
 //vai_quantizer
 
 #### **__init__.py**
