@@ -2,6 +2,50 @@
 
 ![architecture](./architecture_SuperRes7.png)
 
+#### **create_dataset.py**
+
+<details>
+<summary>Python Software Foundation License</summary>
+  
+  <details>
+  
+  <summary>Libraries :</summary>
+  - arpgarse
+  - multiprocessing
+  - os
+  </details>
+</details>
+
+<details>
+<summary>The 2-Clause BSD License</summary>
+  
+  <details>
+  
+  <summary>Libraries :</summary>
+  - cv2
+  </details>
+</details>
+
+<details>
+<summary>The 3-Clause BSD License</summary>
+
+  <details>
+  
+  <summary>Libraries :</summary>
+  - NumPy
+  </details>
+</details>
+
+<details>
+<summary>MIT</summary>
+
+  <details>
+  
+  <summary>Libraries :</summary>
+  - tqdm
+  </details>
+</details>
+
 #### **rebuilder.cpp**
 
 <details>
@@ -29,6 +73,8 @@
   - sys/stat.h
   </details>
 </details>
+
+
 
 - [**Apache 2.0 License**](https://www.apache.org/licenses/LICENSE-2.0): The Apache 2.0 License is permissive. It allows you to use, modify, and distribute the licensed software, including creating derivative works, without requiring those derivative works to be licensed under the same terms.
 
