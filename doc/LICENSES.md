@@ -4,218 +4,152 @@
 
 # IA training
 
-## **create_dataset.py**
-
+<details>
+<summary><span style="font-size: 20px; font-weight: bold">create_dataset.py</span></summary>
+<div style="margin-left: 20px;">
 <details>
 <summary>Python Software Foundation License</summary>
-  
-  <details>
-  
-  <summary>Libraries :</summary>
-  
+      
   - arpgarse
   - multiprocessing
   - os
-  </details>
 </details>
 
 <details>
 <summary>The 2-Clause BSD License</summary>
-  
-  <details>
-  
-  <summary>Libraries :</summary>
-  
+      
   - cv2
-  </details>
 </details>
 
 <details>
 <summary>The 3-Clause BSD License</summary>
-
-  <details>
-  
-  <summary>Libraries :</summary>
-  
+    
   - NumPy
-  </details>
 </details>
 
 <details>
 <summary>MIT</summary>
-
-  <details>
-  
-  <summary>Libraries :</summary>
-  
+    
   - tqdm
-  </details>
+</details>
+</div>
 </details>
 
-## **FSRCNN_train.py**
-
+<details>
+<summary><span style="font-size: 20px; font-weight: bold">FSRCNN_training.py</span></summary>
+<div style="margin-left: 20px;">
 <details>
 <summary>Apache 2.0 License</summary>
-
-  <details>
-  
-  <summary>Libraries :</summary>
-  
+    
   - TensorFlow
-  </details>
 </details>
 
 <details>
 <summary>Python Software Foundation License</summary>
-  
-  <details>
-  
-  <summary>Libraries :</summary>
-  
+      
   - arpgarse
   - gc
   - json
   - os
-  </details>
 </details>
 
 <details>
 <summary>The 2-Clause BSD License</summary>
-  
-  <details>
-  
-  <summary>Libraries :</summary>
-  
+      
   - cv2
   - scikit-learn
-  </details>
 </details>
 
 <details>
 <summary>The 3-Clause BSD License</summary>
-
-  <details>
-  
-  <summary>Libraries :</summary>
-  
+    
   - NumPy
-  </details>
 </details>
 
 <details>
 <summary>Matplotlib License</summary>
-
-  <details>
-  
-  <summary>Libraries :</summary>
-  
+    
   - matplotlib
-  </details>
 </details>
 
 <details>
 <summary>MIT</summary>
-
-  <details>
-  
-  <summary>Libraries :</summary>
-  
+    
   - tqdm
   - livelossplot
-  </details>
+</details>
+// voir training
+</div>
 </details>
 
-// voir training
+<br>
 
 # Target
 
-## **build_app.sh**
-
+<details>
+<summary><span style="font-size: 20px; font-weight: bold">build_app.sh</span></summary>
+<div style="margin-left: 20px;">
 <details>
 <summary>MIT</summary>
   
-  <details>
-  
-  <summary>Libraries :</summary>
-  
   - OpenCV
-  </details>
+</details>
+</div>
 </details>
 
-## **patcher.cpp**
 
 <details>
+<summary><span style="font-size: 20px; font-weight: bold">patcher.cpp</span></summary>
+<div style="margin-left: 20px;">
+<details>
 <summary>The 2-Clause BSD License</summary>
-  
-  <details>
-  
-  <summary>Libraries :</summary>
-  
+
   - OpenCV
-  </details>
 </details>
 
 <details>
 <summary>GPL License (GNU General Public License)</summary>
-
-  <details>
-  
-  <summary>Libraries :</summary>
-  
+    
   - iostream
   - string
   - vector
-  </details>
+</details>
+</div>
 </details>
 
-## **rebuilder.cpp**
-
+<details>
+<summary><span style="font-size: 20px; font-weight: bold">rebuilder.cpp</span></summary>
+<div style="margin-left: 20px;">
 <details>
 <summary>The 2-Clause BSD License</summary>
-  
-  <details>
-  
-  <summary>Libraries :</summary>
-  
+      
   - OpenCV
-  </details>
 </details>
 
 <details>
 <summary>GPL License (GNU General Public License)</summary>
-
-  <details>
-  
-  <summary>Libraries :</summary>
-  
+    
   - iostream
   - string
   - vector
   - dirent.h
   - sys/stat.h
-  </details>
+</details>
+</div>
 </details>
 
-## **runCC.cpp**
-
+<details>
+<summary><span style="font-size: 20px; font-weight: bold">runCNN.cpp</span></summary>
+<div style="margin-left: 20px;">
 <details>
 <summary>The 2-Clause BSD License</summary>
-  
-  <details>
-  
-  <summary>Libraries :</summary>
-  
+      
   - OpenCV
-  </details>
 </details>
 
 <details>
 <summary>GPL License (GNU General Public License)</summary>
-
-  <details>
-  
-  <summary>Libraries :</summary>
-  
+    
   - assert.h
   - dirent.h
   - stdio.h
@@ -234,192 +168,188 @@
   - string
   - vector
   - thread
-  </details>
 </details>
 //common.h
-
-## **bilateral_filter.cpp**
-
-<details>
-<summary>The 2-Clause BSD License</summary>
-  
-  <details>
-  
-  <summary>Libraries :</summary>
-  
-  - OpenCV
-  </details>
+</div>
 </details>
 
-## **common.cpp**
+<details>
+<summary><span style="font-size: 20px; font-weight: bold">bilateral_filter.cpp</span></summary>
+<div style="margin-left: 20px;">
+<details>
+<summary>The 2-Clause BSD License</summary>
+    
+  - OpenCV
+</details>
+</div>
+</details>
 
 <details>
+<summary><span style="font-size: 20px; font-weight: bold">common.cpp</span></summary>
+<div style="margin-left: 20px;">
+<details>
 <summary>GPL License (GNU General Public License)</summary>
-  
-  <details>
-  
-  <summary>Libraries :</summary>
-  
+      
   - cassert
   - numeric
-  </details>
 </details>
 //common.h
-
-## **common.h**
+</div>
+</details>
 
 <details>
+<summary><span style="font-size: 20px; font-weight: bold">common.h</span></summary>
+<div style="margin-left: 20px;">
+<details>
 <summary>Apache 2.0 License</summary>
-  
-  <details>
-  
-  <summary>Libraries :</summary>
-  
+      
   - glog
   - XIR
-  </details>
 </details>
 
 <details>
 <summary>The 2-Clause BSD License</summary>
-  
-  <details>
-  
-  <summary>Libraries :</summary>
-  
+      
   - OpenCV
-  </details>
 </details>
 
 <details>
 <summary>GPL License (GNU General Public License)</summary>
-  
-  <details>
-  
-  <summary>Libraries :</summary>
-  
+      
   - iostream
   - mutex
   - string
   - thread
   - vector
-  </details>
 </details>
 //vitisAI
+</div>
+</details>
+
+<br>
 
 # Vitis AI
 
-## **setup_docker_env.sh**
-
+<details>
+<summary><span style="font-size: 20px; font-weight: bold">setup_docker_env.sh</span></summary>
+<div style="margin-left: 20px;">
 <details>
 <summary>Apache 2.0 License</summary>
-  
-  <details>
-  
-  <summary>Libraries :</summary>
-  
+      
   - TensorFlow
-  </details>
 </details>
 
 <details>
 <summary>The 2-Clause BSD License</summary>
-  
-  <details>
-  
-  <summary>Libraries :</summary>
-  
+      
   - seaborn
   - scipy
-  </details>
 </details>
 
 <details>
 <summary>GPL License (GNU General Public License)</summary>
-  
-  <details>
-  
-  <summary>Libraries :</summary>
-  
+      
   - libgfortran4
-  </details>
 </details>
 //vai_quantizer
-
-## **__init__.py**
-
-## **config.py**
-<details>
-<summary>MIT</summary>
-  
-  <details>
-  
-  <summary>Libraries :</summary>
-  
-  - OpenCV
-  </details>
+</div>
 </details>
 
-## **vai_q_tensorflow2.py** & **eval_quantized_model.py**
 
+<details>
+<summary><span style="font-size: 20px; font-weight: bold">__init__.py</span></summary>
+<div style="margin-left: 20px;">
+<details>
+
+</div>
+</details>
+
+<details>
+<summary><span style="font-size: 20px; font-weight: bold">config.py</span></summary>
+<div style="margin-left: 20px;">
+<details>
+<summary>MIT</summary>
+      
+  - OpenCV
+</details>
+</div>
+</details>
+
+<details>
+<summary><span style="font-size: 20px; font-weight: bold">vai_q_tensorflow2.py</span></summary>
+<div style="margin-left: 20px;">
 <details>
 <summary>Apache 2.0 License</summary>
-  
-  <details>
-  
-  <summary>Libraries :</summary>
-  
+      
   - TensorFlow
-  </details>
 </details>
 
 <details>
 <summary>MIT</summary>
-  
-  <details>
-  
-  <summary>Libraries :</summary>
-  
+      
   - OpenCV
-  </details>
 </details>
 
 <details>
 <summary>Python Software Foundation License</summary>
-  
-  <details>
-  
-  <summary>Libraries :</summary>
-  
+      
   - arpgarse
   - os
-  </details>
 </details>
 
 <details>
 <summary>The 3-Clause BSD License</summary>
-
-  <details>
-  
-  <summary>Libraries :</summary>
-  
+    
   - NumPy
-  </details>
 </details>
 
 <details>
 <summary>Matplotlib License</summary>
-
-  <details>
-  
-  <summary>Libraries :</summary>
-  
+    
   - matplotlib
-  </details>
 </details>
 //config.py
+</div>
+</details>
 
----
+<details>
+<summary><span style="font-size: 20px; font-weight: bold">eval_quantized_model.py</span></summary>
+<div style="margin-left: 20px;">
+<details>
+<summary>Apache 2.0 License</summary>
+      
+  - TensorFlow
+</details>
+
+<details>
+<summary>MIT</summary>
+      
+  - OpenCV
+</details>
+
+<details>
+<summary>Python Software Foundation License</summary>
+      
+  - arpgarse
+  - os
+</details>
+
+<details>
+<summary>The 3-Clause BSD License</summary>
+    
+  - NumPy
+</details>
+
+<details>
+<summary>Matplotlib License</summary>
+    
+  - matplotlib
+</details>
+//config.py
+</div>
+</details>
+
+<br>
 
 # Licenses details
 
