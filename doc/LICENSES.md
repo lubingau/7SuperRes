@@ -82,8 +82,6 @@
 </div>
 </details>
 
-<br>
-
 # Target
 
 <details>
@@ -226,8 +224,6 @@
 </div>
 </details>
 
-<br>
-
 # Vitis AI
 
 <details>
@@ -348,8 +344,6 @@
 //config.py
 </div>
 </details>
-
-<br>
 
 # Licenses details
 
