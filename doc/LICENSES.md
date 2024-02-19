@@ -4,7 +4,7 @@
 
 ---
 
-### IA training
+## IA training
 
 #### **create_dataset.py**
 
@@ -130,7 +130,7 @@
 // voir training
 
 ---
-### Target
+## Target
 
 #### **build_app.sh**
 
@@ -312,7 +312,7 @@
 
 ---
 
-### Vitis AI
+## Vitis AI
 
 #### **setup_docker_env.sh**
 
@@ -349,6 +349,85 @@
   - libgfortran4
   </details>
 //vai_quantizer
+
+#### **__init__.py**
+
+#### **config.py**
+<details>
+<summary>MIT</summary>
+  
+  <details>
+  
+  <summary>Libraries :</summary>
+  
+  - OpenCV
+  </details>
+</details>
+
+#### **vai_q_tensorflow2.py**
+
+<details>
+<summary>Apache 2.0 License</summary>
+  
+  <details>
+  
+  <summary>Libraries :</summary>
+  
+  - TensorFlow
+  </details>
+</details>
+
+<details>
+<summary>MIT</summary>
+  
+  <details>
+  
+  <summary>Libraries :</summary>
+  
+  - OpenCV
+  </details>
+</details>
+
+<details>
+<summary>Python Software Foundation License</summary>
+  
+  <details>
+  
+  <summary>Libraries :</summary>
+  
+  - arpgarse
+  - os
+  </details>
+</details>
+
+<details>
+<summary>The 3-Clause BSD License</summary>
+
+  <details>
+  
+  <summary>Libraries :</summary>
+  
+  - NumPy
+  </details>
+</details>
+
+<details>
+<summary>Matplotlib License</summary>
+
+  <details>
+  
+  <summary>Libraries :</summary>
+  
+  - matplotlib
+  </details>
+</details>
+//config.py
+
+#### **eval_quantized_model.py**
+
+
+---
+
 # Licenses details
 
 - [**Apache 2.0 License**](https://www.apache.org/licenses/LICENSE-2.0): The Apache 2.0 License is permissive. It allows you to use, modify, and distribute the licensed software, including creating derivative works, without requiring those derivative works to be licensed under the same terms.
