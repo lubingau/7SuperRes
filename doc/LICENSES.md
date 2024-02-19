@@ -103,6 +103,17 @@
 </details>
 
 <details>
+<summary>Matplotlib License</summary>
+
+  <details>
+  
+  <summary>Libraries :</summary>
+  
+  - matplotlib
+  </details>
+</details>
+
+<details>
 <summary>MIT</summary>
 
   <details>
@@ -114,16 +125,7 @@
   </details>
 </details>
 
-<details>
-<summary>Matplotlib License</summary>
-
-  <details>
-  
-  <summary>Libraries :</summary>
-  
-  - matplotlib
-  </details>
-</details>
+// voir training
 
 #### **rebuilder.cpp**
 
