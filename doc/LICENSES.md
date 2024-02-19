@@ -22,7 +22,11 @@
   
   <summary>Librairies :</summary>
   
-  - iostream, string, vector, dirent.h, sys/stat.h
+  - iostream,
+  - string,
+  - vector,
+  - dirent.h,
+  - sys/stat.h
   </details>
 </details>
 
