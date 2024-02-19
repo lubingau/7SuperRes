@@ -309,8 +309,46 @@
   </details>
 </details>
 //vitisAI
+
 ---
 
+### Vitis AI
+
+#### **setup_docker_env.sh**
+
+<details>
+<summary>Apache 2.0 License</summary>
+  
+  <details>
+  
+  <summary>Libraries :</summary>
+  
+  - TensorFlow
+  </details>
+</details>
+
+<details>
+<summary>The 2-Clause BSD License</summary>
+  
+  <details>
+  
+  <summary>Libraries :</summary>
+  
+  - seaborn
+  - scipy
+  </details>
+</details>
+
+<details>
+<summary>GPL License (GNU General Public License)</summary>
+  
+  <details>
+  
+  <summary>Libraries :</summary>
+  
+  - libgfortran4
+  </details>
+//vai_quantizer
 # Licenses details
 
 - [**Apache 2.0 License**](https://www.apache.org/licenses/LICENSE-2.0): The Apache 2.0 License is permissive. It allows you to use, modify, and distribute the licensed software, including creating derivative works, without requiring those derivative works to be licensed under the same terms.
