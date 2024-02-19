@@ -129,7 +129,7 @@
 
 # Target
 
-#### **build_app.sh**
+## **build_app.sh**
 
 <details>
 <summary>MIT</summary>
@@ -142,7 +142,7 @@
   </details>
 </details>
 
-#### **patcher.cpp**
+## **patcher.cpp**
 
 <details>
 <summary>The 2-Clause BSD License</summary>
@@ -168,7 +168,7 @@
   </details>
 </details>
 
-#### **rebuilder.cpp**
+## **rebuilder.cpp**
 
 <details>
 <summary>The 2-Clause BSD License</summary>
@@ -196,7 +196,7 @@
   </details>
 </details>
 
-#### **runCC.cpp**
+## **runCC.cpp**
 
 <details>
 <summary>The 2-Clause BSD License</summary>
@@ -238,7 +238,7 @@
 </details>
 //common.h
 
-#### **bilateral_filter.cpp**
+## **bilateral_filter.cpp**
 
 <details>
 <summary>The 2-Clause BSD License</summary>
@@ -251,7 +251,7 @@
   </details>
 </details>
 
-#### **common.cpp**
+## **common.cpp**
 
 <details>
 <summary>GPL License (GNU General Public License)</summary>
@@ -266,7 +266,7 @@
 </details>
 //common.h
 
-#### **common.h**
+## **common.h**
 
 <details>
 <summary>Apache 2.0 License</summary>
@@ -307,9 +307,9 @@
 </details>
 //vitisAI
 
-## Vitis AI
+# Vitis AI
 
-#### **setup_docker_env.sh**
+## **setup_docker_env.sh**
 
 <details>
 <summary>Apache 2.0 License</summary>
@@ -346,9 +346,9 @@
 </details>
 //vai_quantizer
 
-#### **__init__.py**
+## **__init__.py**
 
-#### **config.py**
+## **config.py**
 <details>
 <summary>MIT</summary>
   
@@ -360,7 +360,7 @@
   </details>
 </details>
 
-#### **vai_q_tensorflow2.py** & **eval_quantized_model.py**
+## **vai_q_tensorflow2.py** & **eval_quantized_model.py**
 
 <details>
 <summary>Apache 2.0 License</summary>
