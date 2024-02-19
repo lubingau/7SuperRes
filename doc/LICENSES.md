@@ -10,6 +10,7 @@
   <details>
   
   <summary>Libraries :</summary>
+  
   - arpgarse
   - multiprocessing
   - os
@@ -22,6 +23,7 @@
   <details>
   
   <summary>Libraries :</summary>
+  
   - cv2
   </details>
 </details>
@@ -32,6 +34,7 @@
   <details>
   
   <summary>Libraries :</summary>
+  
   - NumPy
   </details>
 </details>
@@ -42,6 +45,7 @@
   <details>
   
   <summary>Libraries :</summary>
+  
   - tqdm
   </details>
 </details>
