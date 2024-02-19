@@ -132,6 +132,45 @@
 ---
 ### Target
 
+#### **build_app.sh**
+
+<details>
+<summary>MIT</summary>
+  
+  <details>
+  
+  <summary>Libraries :</summary>
+  
+  - OpenCV
+  </details>
+</details>
+
+#### **patcher.cpp**
+
+<details>
+<summary>The 2-Clause BSD License</summary>
+  
+  <details>
+  
+  <summary>Libraries :</summary>
+  
+  - OpenCV
+  </details>
+</details>
+
+<details>
+<summary>GPL License (GNU General Public License)</summary>
+
+  <details>
+  
+  <summary>Libraries :</summary>
+  
+  - iostream
+  - string
+  - vector
+  </details>
+</details>
+
 #### **rebuilder.cpp**
 
 <details>
@@ -160,10 +199,119 @@
   </details>
 </details>
 
+#### **runCC.cpp**
 
+<details>
+<summary>The 2-Clause BSD License</summary>
+  
+  <details>
+  
+  <summary>Libraries :</summary>
+  
+  - OpenCV
+  </details>
+</details>
+
+<details>
+<summary>GPL License (GNU General Public License)</summary>
+
+  <details>
+  
+  <summary>Libraries :</summary>
+  
+  - assert.h
+  - dirent.h
+  - stdio.h
+  - stdlib.h
+  - sys/stat.h
+  - unistd.h
+  - chrono
+  - cassert
+  - cmatg
+  - cstdio
+  - fstram
+  - sstream
+  - iomanip
+  - iostream
+  - queue
+  - string
+  - vector
+  - thread
+  </details>
+</details>
+//common.h
+
+#### **bilateral_filter.cpp**
+
+<details>
+<summary>The 2-Clause BSD License</summary>
+  
+  <details>
+  
+  <summary>Libraries :</summary>
+  
+  - OpenCV
+  </details>
+</details>
+
+#### **common.cpp**
+
+<details>
+<summary>GPL License (GNU General Public License)</summary>
+  
+  <details>
+  
+  <summary>Libraries :</summary>
+  
+  - cassert
+  - numeric
+  </details>
+</details>
+//common.h
+
+#### **common.h**
+
+<details>
+<summary>Apache 2.0 License</summary>
+  
+  <details>
+  
+  <summary>Libraries :</summary>
+  
+  - glog
+  - XIR
+  </details>
+</details>
+
+<details>
+<summary>The 2-Clause BSD License</summary>
+  
+  <details>
+  
+  <summary>Libraries :</summary>
+  
+  - OpenCV
+  </details>
+</details>
+
+<details>
+<summary>GPL License (GNU General Public License)</summary>
+  
+  <details>
+  
+  <summary>Libraries :</summary>
+  
+  - iostream
+  - mutex
+  - string
+  - thread
+  - vector
+  </details>
+</details>
+//vitisAI
 ---
 
-# Details of the Licenses
+# Licenses details
 
 - [**Apache 2.0 License**](https://www.apache.org/licenses/LICENSE-2.0): The Apache 2.0 License is permissive. It allows you to use, modify, and distribute the licensed software, including creating derivative works, without requiring those derivative works to be licensed under the same terms.
 
