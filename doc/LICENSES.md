@@ -4,17 +4,14 @@
 
 ### **rebuilder.cpp** 
 <details>
-<summary>Menu déroulant</summary>
 
 - [The 2-Clause BSD License](#option-1)
   <details>
-  <summary>Informations sur la licence</summary>
   OpenCV
   </details>
 
 - [GPL License (GNU General Public License)](#option-2)
   <details>
-  <summary>Informations sur la licence</summary>
   iostream, string, vector, dirent.h, sys/stat.h
   </details>
 
