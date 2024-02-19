@@ -6,7 +6,6 @@
 
 ### IA training
 
-___
 #### **create_dataset.py**
 
 <details>
@@ -54,7 +53,7 @@ ___
   - tqdm
   </details>
 </details>
-___
+
 #### **FSRCNN_train.py**
 
 <details>
