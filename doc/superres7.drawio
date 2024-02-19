@@ -1,16 +1,16 @@
-<mxfile host="app.diagrams.net" modified="2024-02-16T14:50:38.346Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36" etag="HSPkYK-dnce43lld_SVQ" version="23.1.2" type="device">
+<mxfile host="app.diagrams.net" modified="2024-02-19T14:11:14.443Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36" etag="kmOY_DbKlinSkHwExN8-" version="23.1.5" type="device">
   <diagram name="Page-1" id="vcXci2bqDAyVP7YMLNGr">
-    <mxGraphModel dx="1235" dy="768" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="1290" dy="653" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="2u_6QsMN4XXAKxNyCOcL-3" value="Vitis AI" style="rounded=0;whiteSpace=wrap;html=1;dashed=1;horizontal=1;verticalAlign=top;" vertex="1" parent="1">
+        <mxCell id="2u_6QsMN4XXAKxNyCOcL-3" value="Vitis AI" style="rounded=0;whiteSpace=wrap;html=1;dashed=1;horizontal=1;verticalAlign=top;" parent="1" vertex="1">
           <mxGeometry x="430" y="290" width="360" height="315" as="geometry" />
         </mxCell>
-        <mxCell id="2u_6QsMN4XXAKxNyCOcL-6" value="run_modeLsh" style="rounded=0;whiteSpace=wrap;html=1;verticalAlign=top;" vertex="1" parent="1">
+        <mxCell id="2u_6QsMN4XXAKxNyCOcL-6" value="run_model.sh" style="rounded=0;whiteSpace=wrap;html=1;verticalAlign=top;" parent="1" vertex="1">
           <mxGeometry x="450" y="385" width="320" height="200" as="geometry" />
         </mxCell>
-        <mxCell id="2u_6QsMN4XXAKxNyCOcL-1" value="IA training" style="rounded=0;whiteSpace=wrap;html=1;dashed=1;horizontal=1;verticalAlign=top;" vertex="1" parent="1">
+        <mxCell id="2u_6QsMN4XXAKxNyCOcL-1" value="IA training" style="rounded=0;whiteSpace=wrap;html=1;dashed=1;horizontal=1;verticalAlign=top;" parent="1" vertex="1">
           <mxGeometry x="341" y="120" width="160" height="147" as="geometry" />
         </mxCell>
         <mxCell id="ATKplR0ULaw460NyAFsO-15" value="run_target.sh" style="rounded=0;whiteSpace=wrap;html=1;align=center;verticalAlign=top;" parent="1" vertex="1">
@@ -61,7 +61,7 @@
         <mxCell id="ATKplR0ULaw460NyAFsO-23" value="setup_docker_env.sh" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="460" y="324" width="130" height="40" as="geometry" />
         </mxCell>
-        <mxCell id="2u_6QsMN4XXAKxNyCOcL-7" value="__init__.py" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+        <mxCell id="2u_6QsMN4XXAKxNyCOcL-7" value="__init__.py" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="470" y="420" width="80" height="40" as="geometry" />
         </mxCell>
       </root>
