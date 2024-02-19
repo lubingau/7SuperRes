@@ -2,6 +2,8 @@
 
 ![architecture](./architecture_SuperRes7.png)
 
+### IA training
+
 #### **create_dataset.py**
 
 <details>
@@ -47,6 +49,79 @@
   <summary>Libraries :</summary>
   
   - tqdm
+  </details>
+</details>
+
+#### **FSRCNN_train.py**
+
+<details>
+<summary>Apache 2.0 License</summary>
+
+  <details>
+  
+  <summary>Libraries :</summary>
+  
+  - TensorFlow
+  </details>
+</details>
+
+<details>
+<summary>Python Software Foundation License</summary>
+  
+  <details>
+  
+  <summary>Libraries :</summary>
+  
+  - arpgarse
+  - gc
+  - json
+  - os
+  </details>
+</details>
+
+<details>
+<summary>The 2-Clause BSD License</summary>
+  
+  <details>
+  
+  <summary>Libraries :</summary>
+  
+  - cv2
+  - scikit-learn
+  </details>
+</details>
+
+<details>
+<summary>The 3-Clause BSD License</summary>
+
+  <details>
+  
+  <summary>Libraries :</summary>
+  
+  - NumPy
+  </details>
+</details>
+
+<details>
+<summary>MIT</summary>
+
+  <details>
+  
+  <summary>Libraries :</summary>
+  
+  - tqdm
+  - livelossplot
+  </details>
+</details>
+
+<details>
+<summary>Matplotlib License</summary>
+
+  <details>
+  
+  <summary>Libraries :</summary>
+  
+  - matplotlib
   </details>
 </details>
 
