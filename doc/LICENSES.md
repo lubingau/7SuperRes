@@ -2,30 +2,30 @@
 
 ![architecture](./architecture_SuperRes7.png)
 
-### **rebuilder.cpp**
+#### **rebuilder.cpp**
 
 <details>
-<summary>Licence : The 2-Clause BSD License</summary>
+<summary>The 2-Clause BSD License</summary>
   
   <details>
   
-  <summary>Librairies :</summary>
+  <summary>Libraries :</summary>
   
   - OpenCV
   </details>
 </details>
 
 <details>
-<summary>Licence : GPL License (GNU General Public License)</summary>
+<summary>GPL License (GNU General Public License)</summary>
 
   <details>
   
-  <summary>Librairies :</summary>
+  <summary>Libraries :</summary>
   
-  - iostream,
-  - string,
-  - vector,
-  - dirent.h,
+  - iostream
+  - string
+  - vector
+  - dirent.h
   - sys/stat.h
   </details>
 </details>
