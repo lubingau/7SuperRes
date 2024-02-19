@@ -364,7 +364,7 @@
   </details>
 </details>
 
-#### **vai_q_tensorflow2.py**
+#### **vai_q_tensorflow2.py** & **eval_quantized_model.py**
 
 <details>
 <summary>Apache 2.0 License</summary>
@@ -422,9 +422,6 @@
   </details>
 </details>
 //config.py
-
-#### **eval_quantized_model.py**
-
 
 ---
 
