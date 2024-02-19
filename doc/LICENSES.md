@@ -7,15 +7,18 @@
 <summary>Menu déroulant</summary>
 
 - [The 2-Clause BSD License](#option-1)
+  <details>
+  <summary>Informations sur la licence</summary>
+  OpenCV
+  </details>
+
 - [GPL License (GNU General Public License)](#option-2)
+  <details>
+  <summary>Informations sur la licence</summary>
+  iostream, string, vector, dirent.h, sys/stat.h
+  </details>
 
 </details>
-
-## Option 1
-OpenCV
-
-## Option 2
-iostream, string, vector, dirent.h, sys/stat.h
 
 - [**Apache 2.0 License**](https://www.apache.org/licenses/LICENSE-2.0): The Apache 2.0 License is permissive. It allows you to use, modify, and distribute the licensed software, including creating derivative works, without requiring those derivative works to be licensed under the same terms.
 
