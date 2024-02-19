@@ -2,9 +2,9 @@
 
 ![architecture](./architecture_SuperRes7.png)
 
-## IA training
+# IA training
 
-#### **create_dataset.py**
+## **create_dataset.py**
 
 <details>
 <summary>Python Software Foundation License</summary>
@@ -52,7 +52,7 @@
   </details>
 </details>
 
-#### **FSRCNN_train.py**
+## **FSRCNN_train.py**
 
 <details>
 <summary>Apache 2.0 License</summary>
@@ -127,7 +127,7 @@
 
 // voir training
 
-## Target
+# Target
 
 #### **build_app.sh**
 
