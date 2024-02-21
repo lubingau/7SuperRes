@@ -17,7 +17,6 @@ void patch_image(const Mat& image, vector<Mat>& image_arr, vector<string>& name_
     , const string& output_folder
 #endif
 ) {
-    int count = 0;
     int stride_pixels = patch_size * stride;
 
     cout << "[SR7 INFO Patcher] Started patcher with patch size: " << patch_size << " and stride: " << stride << endl;
@@ -36,14 +35,13 @@ void patch_image(const Mat& image, vector<Mat>& image_arr, vector<string>& name_
             string filename = output_folder + name + ".png";
             imwrite(filename, patch);
 #endif
-            count++;
-            if (count % 100 == 0){
+            if (image_arr.size() % 100 == 0){
                 cout << "\x1b[A";
-                cout << "[SR7 INFO Patcher] Patches created: " << count << endl;
+                cout << "[SR7 INFO Patcher] Patches created: " << image_arr.size() << endl;
             }     
         }
     }
-    cout << "[SR7 INFO Patcher] Regular patches created: " << count << endl;
+    cout << "[SR7 INFO Patcher] Regular patches created: " << image_arr.size() << endl;
 
     // Edge patches
     int last_patch_j = image.cols - patch_size;
@@ -61,7 +59,6 @@ void patch_image(const Mat& image, vector<Mat>& image_arr, vector<string>& name_
         string filename = output_folder + name + ".png";
         imwrite(filename, patch);
 #endif
-        count++; 
     }
 
     // Edge patches
@@ -77,7 +74,6 @@ void patch_image(const Mat& image, vector<Mat>& image_arr, vector<string>& name_
         string filename = output_folder + name + ".png";
         imwrite(filename, patch);
 #endif
-        count++;
     }
 
     // Last patch (bottom right corner)
@@ -92,7 +88,6 @@ void patch_image(const Mat& image, vector<Mat>& image_arr, vector<string>& name_
     string filename = output_folder + name + ".png";
     imwrite(filename, patch);
 #endif
-    count++;
     cout << "[SR7 INFO Patcher] Edge patches created" << endl;
-    cout << "[SR7 INFO Patcher] Total patches created: " << count << endl;
+    cout << "[SR7 INFO Patcher] Total patches created: " << image_arr.size() << endl;
 }

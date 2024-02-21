@@ -79,8 +79,14 @@ run_models() {
     mkdir outputs
     mkdir inputs
 
+    echo "[SR7 INFO] Running memory footprint"
+    ./code/src/memory_footprint.sh &
+    pid_memory_footprint=$!
     echo "[SR7 INFO] Running CNN model"
     ./code/build/SuperRes7 $1 $2 $3 $4 $5 "debug/"
+
+    kill "$pid_memory_footprint"
+    echo "[SR7 INFO] Saved memory footprint in code/src/memory_usage.csv"
 }
 
 run_fps() {

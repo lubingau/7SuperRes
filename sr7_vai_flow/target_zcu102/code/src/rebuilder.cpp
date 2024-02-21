@@ -109,6 +109,7 @@ void rebuild_image_and_mask(const vector<Mat>& img_patch_vec, const vector<strin
             cout << "[SR7 INFO Rebuilder] " << n+1 << " patches added" << endl;
         }
     }
+    cout << "[SR7 INFO Rebuilder] Total of " << img_patch_vec.size() << " patches added" << endl;
 
     cout << "[SR7 INFO Rebuilder] Applying mask" << endl;
     // Iterate over each pixel

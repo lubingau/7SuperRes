@@ -337,8 +337,11 @@ void runCNN(const vector<Mat>& inputImages, vector<Mat>& outputImages, const str
     for (int row = 0; row < outHeight; row++) {
       for (int col = 0; col < outWidth; col++) {
         B_pix = 2*outputBuffer[n*outSize + 3*(row*outWidth+col) + 0];
+        if (B_pix < 0) B_pix = 0; // Avoid negative values that transform into artifacts
         G_pix = 2*outputBuffer[n*outSize + 3*(row*outWidth+col) + 1];
+        if (G_pix < 0) G_pix = 0;
         R_pix = 2*outputBuffer[n*outSize + 3*(row*outWidth+col) + 2];
+        if (R_pix < 0) R_pix = 0;
         superResolvedImage.at<cv::Vec3b>(row, col) = Vec3b(B_pix, G_pix, R_pix);
       }
     }

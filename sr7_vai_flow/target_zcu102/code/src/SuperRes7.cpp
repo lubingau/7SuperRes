@@ -86,9 +86,9 @@ int main(int argc, char** argv) {
             string debug_runCNN_input_folder = debug_folder + "runCNN/input/";
             string debug_runCNN_output_folder = debug_folder + "runCNN/output/";
             runCNN(img_patch_vec_temp, doub_img_patch_vec_temp, path_xmodel, threads, debug_runCNN_input_folder, debug_runCNN_output_folder);
-            //extrapolateImages(img_patch_vec_temp, doub_img_patch_vec_temp);
 #else
             runCNN(img_patch_vec_temp, doub_img_patch_vec_temp, path_xmodel, threads);
+            //extrapolateImages(img_patch_vec_temp, doub_img_patch_vec_temp);
 #endif
             for (int i = 0; i < doub_img_patch_vec_temp.size(); i++){
                 doub_img_patch_vec.push_back(doub_img_patch_vec_temp[i]);
