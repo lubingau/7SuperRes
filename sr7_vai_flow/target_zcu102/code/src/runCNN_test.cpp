@@ -4,7 +4,9 @@ using namespace std;
 using namespace cv;
 using namespace std::chrono;
 
-void interpolateImages(const std::vector<cv::Mat>& inputImages, std::vector<cv::Mat>& outputImages) {
+#include "debug.h"
+
+void extrapolateImages(const std::vector<cv::Mat>& inputImages, std::vector<cv::Mat>& outputImages) {
     cout << "[SR7 INFO RunCNN] Interpolating images..." << endl;
     for (const auto& inputImage : inputImages) {
         cv::Mat outputImage;
