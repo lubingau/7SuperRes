@@ -80,8 +80,7 @@ run_models() {
     mkdir inputs
 
     echo "[SR7 INFO] Running CNN model"
-    #./run_cnn ./fsrcnn6_relu/model/fsrcnn6_relu.xmodel  ../sr7_dataset/test/blr/ 1 0 1 200 #2> /dev/null | tee ./rpt/logfile_cpp_fsrcnn6_relu.txt
-    ./code/build/SuperRes7 $1 $2 $3 $4 $5
+    ./code/build/SuperRes7 $1 $2 $3 $4 $5 "debug/"
 }
 
 run_fps() {
@@ -92,25 +91,32 @@ run_fps() {
 # MAIN
 if [ "$1" = "--build" ]; then
     compilation=true
-    cd code/
-    rm -rf build/
-    mkdir build
-    cd ..
+    rm -rf code/build/
+    mkdir code/build
     echo "[SR7 INFO] Deleted build folder, ready for compilation"
 elif [ "$1" = "--no-build" ]; then
     compilation=false
 else
-    echo "Usage: [--build | --no-build] [png_file] [patch_size] [stride] [mask_file]"
+    echo "Usage: [--build | --no-build] [png_file] [patch_size] [stride] [output_dir] [--debug]"
     exit 1
+fi
+if [ "$6" = "--debug" ]; then
+    echo "[SR7 INFO] Debug mode"
+    rm -rf debug
+    mkdir debug
+    cd debug
+    mkdir patcher runCNN runCNN/input runCNN/output rebuilder
+    cd ..
 fi
 
 png_file=$2
 patch_size=$3
 stride=$4
-mask_file=$5
+output_dir=$5
+path_xmodel="/home/petalinux/target_zcu102/fsrcnn6_relu/model/fsrcnn6_relu.xmodel"
 
 #clean
 #dataset
 compile $compilation
-run_models $png_file $patch_size $stride $mask_file "outputs/"
+run_models $png_file $patch_size $stride $path_xmodel $output_dir
 #run_fps

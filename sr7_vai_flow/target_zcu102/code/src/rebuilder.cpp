@@ -8,10 +8,13 @@
 #include <dirent.h>
 #include <sys/stat.h>
 
+#include "debug.h"
+
 using namespace cv;
 using namespace std;
 
-void ListImages(string const &path, vector<string> &images_list) {
+
+void ListImages(const string &path, vector<string> &images_list) {
   images_list.clear();
   struct dirent *entry;
 
@@ -71,16 +74,22 @@ void rebuild_image(Mat& image, const string& patch_folder) {
     }
 }
 
-void rebuild_image_and_mask(Mat& image, vector<Mat>& img_patch_vec, vector<string>& name_vec) {
-    cout << "[SR7 INFO Rebuilder] Starting to rebuild image..." << endl;
-    cout << "[SR7 INFO Rebuilder] Found " << img_patch_vec.size() << " patches" << endl;
 
-    Mat mask_patch = Mat::ones(img_patch_vec[0].size(), CV_8U);
-    Mat mask(image.size(), CV_8U);
-    int num_of_images = img_patch_vec.size();
-    for (int i=0; i<num_of_images; i++) {
-        Mat patch = img_patch_vec[i];
-        string patch_name = name_vec[i];
+void rebuild_image_and_mask(const vector<Mat>& img_patch_vec, const vector<string>& name_vec, Mat& reconstructed_image
+#if DEBUG_REBUILDER
+    , const string& output_images_folder
+#endif
+) {
+    cout << "[SR7 INFO Rebuilder] Start to rebuild image" << endl;
+    cout << "[SR7 INFO Rebuilder] Found " << img_patch_vec.size() << " patches\n" << endl;
+
+    Mat mask_patch(img_patch_vec[0].size(), CV_8U, Scalar(1));
+    Mat mask(reconstructed_image.size(), CV_8U, Scalar(0));
+    Mat sum_image(reconstructed_image.size(), CV_16UC3, Scalar(0, 0, 0));
+
+    for (int n=0; n<img_patch_vec.size(); n++) {
+        Mat patch = img_patch_vec[n];
+        string patch_name = name_vec[n];
 
         size_t i_pos = patch_name.find("i");
         size_t j_pos = patch_name.find("j");
@@ -92,64 +101,42 @@ void rebuild_image_and_mask(Mat& image, vector<Mat>& img_patch_vec, vector<strin
 
         Rect patch_rect(2*row, 2*col, patch.rows, patch.cols);
 
-        image(patch_rect) += patch;
+        sum_image(patch_rect) += patch;
         mask(patch_rect) += mask_patch;
 
-        if ((i%100 == 0) or (i == num_of_images-1)){
+        if ((n-1 % 100 == 0)or(n==img_patch_vec.size()-1)) {
             cout << "\x1b[A";
-            cout << "[SR7 INFO Rebuilder] " << i+1 << " patches rebuilt" << endl;
+            cout << "[SR7 INFO Rebuilder] " << n+1 << " patches added" << endl;
         }
     }
 
-    cout << "[SR7 INFO Rebuilder] Applying mask..." << endl;
+    cout << "[SR7 INFO Rebuilder] Applying mask" << endl;
     // Iterate over each pixel
-    for (int x = 0; x < image.rows; ++x) {
-        for (int y = 0; y < image.cols; ++y) {
-            // Get the pixel values from image and matrix
-            Vec3w image_pixel = image.at<Vec3w>(x, y);
-
-            uchar mask_pixel = mask.at<uchar>(x, 3*y); // 3*y because the matrix has only 1 channel
-
-            image.at<Vec3b>(x, y) = (Vec3b)(image_pixel / mask_pixel);
+    for (int x = 0; x < reconstructed_image.rows; ++x) {
+        for (int y = 0; y < reconstructed_image.cols; ++y) {
+            int mask_pixel = mask.at<uchar>(x, y);
+            if (mask_pixel != 1) {
+                Vec3w image_pixel = sum_image.at<Vec3w>(x, y);
+                reconstructed_image.at<Vec3w>(x, y) = (Vec3w)(image_pixel / mask_pixel);
+            }
+            else {
+                reconstructed_image.at<Vec3w>(x, y) = sum_image.at<Vec3w>(x, y);
+            }
         }
     }
-    image.convertTo(image, CV_8UC3);
+#if DEBUG_REBUILDER
+    // multiply the mask by 32 to make it visible
+    mask *= 32;
+    string mask_filename = output_images_folder + "mask.png";
+    string sum_image_filename = output_images_folder + "sum_image.png";
+    sum_image.convertTo(sum_image, CV_8UC3);
+    imwrite(mask_filename, mask);
+    imwrite(sum_image_filename, sum_image);
+    mask.release();
+    sum_image.release();
+#else
+    mask.release();
+    sum_image.release();
+#endif
     cout << "[SR7 INFO Rebuilder] Mask applied!" << endl;
 }
-
-// int main(int argc, char** argv) {
-//     if (argc != 3) {
-//         cout << "Usage: ./image_patcher <patch_folder> <path_matrix>\n";
-//         return -1;
-//     }
-
-//     string patch_folder = argv[1];
-//     string path_matrix = argv[2];
-
-    //    Mat matrix;
-    //    matrix = imread(path_matrix);
-    //    matrix.convertTo(matrix, CV_8U);
-    //    cout << "Input matrix shape: "<< matrix.size << endl;
-
-    //    int IMG_HEIGHT = matrix.rows;
-    //    int IMG_WIDTH = matrix.cols;
-
-    //    Mat image(IMG_HEIGHT, IMG_WIDTH, CV_16UC3);
-
-//     rebuild_image(image, patch_folder);
-
-//     Mat reconstructed_image(IMG_HEIGHT, IMG_WIDTH, CV_8UC3);
-
-
-    //    cout << "Reconstructed matrix shape: "<< reconstructed_image.size << endl;
-
-
-//     mean_matrix(image, matrix, reconstructed_image);
-
-//     // convert image into 8-bit
-//     image.convertTo(image, CV_8UC3);
-//     imwrite("matrix.png", matrix);
-//     imwrite("original_image.png", image);
-//     imwrite("reconstructed_image.png", reconstructed_image);
-//     return 0;
-// }
