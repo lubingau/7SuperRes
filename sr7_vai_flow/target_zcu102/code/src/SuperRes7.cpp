@@ -4,13 +4,22 @@
 #include "rebuilder.cpp"
 #include "rebuilder_with_mask.cpp"
 #include "bilateral_filter.cpp"
-#include "runCNN.cpp"
-//#include "runCNN_test.cpp"
+//#include "runCNN.cpp"
+#include "runCNN_test.cpp"
 
 #include "debug.h"
 
 
 int main(int argc, char** argv) {
+
+    /*
+    Main function of the SuperRes7 application. This function reads the input arguments, loads the input image, 
+    patches it, runs the super-resolution AI, rebuilds the image and saves it.
+
+    Args:
+        argc: Number of input arguments
+        argv: Input arguments
+    */
 
     auto start_global = std::chrono::high_resolution_clock::now();
 
@@ -88,8 +97,8 @@ int main(int argc, char** argv) {
             string debug_runCNN_output_folder = debug_folder + "runCNN/output/";
             runCNN(img_patch_vec_temp, doub_img_patch_vec_temp, path_xmodel, threads, debug_runCNN_input_folder, debug_runCNN_output_folder);
 #else
-            runCNN(img_patch_vec_temp, doub_img_patch_vec_temp, path_xmodel, threads);
-            // extrapolateImages(img_patch_vec_temp, doub_img_patch_vec_temp);
+            //runCNN(img_patch_vec_temp, doub_img_patch_vec_temp, path_xmodel, threads);
+            extrapolateImages(img_patch_vec_temp, doub_img_patch_vec_temp);
 #endif
             for (int i = 0; i < doub_img_patch_vec_temp.size(); i++){
                 doub_img_patch_vec.push_back(doub_img_patch_vec_temp[i]);
@@ -133,10 +142,11 @@ int main(int argc, char** argv) {
     Mat reconstructed_image(2 * IMG_HEIGHT, 2 * IMG_WIDTH, CV_16UC3);
 #if DEBUG_REBUILDER
     string debug_rebuilder_folder = debug_folder + "rebuilder/";
-    rebuild_image_and_mask(doub_img_patch_vec, name_vec, reconstructed_image, debug_rebuilder_folder);
+    //rebuild_image_with_mask(doub_img_patch_vec, name_vec, reconstructed_image, debug_rebuilder_folder);
+    rebuild_image(doub_img_patch_vec, name_vec, reconstructed_image, 2*patch_size, stride, debug_rebuilder_folder);
 #else
-    // vrebuild_image_and_mask(doub_img_patch_vec, name_vec, reconstructed_image);
-    rebuild_image_2(doub_img_patch_vec, name_vec, reconstructed_image, 2*patch_size, stride);
+    // rebuild_image_with_mask(doub_img_patch_vec, name_vec, reconstructed_image);
+    rebuild_image(doub_img_patch_vec, name_vec, reconstructed_image, 2*patch_size, stride);
 #endif
     reconstructed_image.convertTo(reconstructed_image, CV_8UC3);
     doub_img_patch_vec.clear();

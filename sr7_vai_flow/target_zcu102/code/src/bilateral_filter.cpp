@@ -1,6 +1,15 @@
 #include <opencv2/opencv.hpp>
 
 void bilateral_filter(Mat& image, Mat& filtered_image) {
+
+    /*
+    A method to apply a bilateral filter to an input image. This method is used to smooth the input image.
+
+    Args:
+        image: The input image to be filtered.
+        filtered_image: The output image after applying the bilateral filter.
+    */
+
     // Parameters
     int diameter = 19;
     double sigma_color = 30;

@@ -17,6 +17,19 @@ void patch_image(const Mat& image, vector<Mat>& image_arr, vector<string>& name_
     , const string& output_folder
 #endif
 ) {
+    /*
+    A method to create patches from an input image.
+
+    Args:
+        image: The input image to be patched.
+        image_arr: The vector where the patches will be stored.
+        name_arr: The vector where the names of the patches will be stored.
+        patch_size: The size of the patches.
+        stride: The stride used to create the patches.
+    If DEBUG:
+        output_folder: The folder where the patches will be saved.
+    */
+
     int stride_pixels = patch_size * stride;
     int overlap = patch_size - stride_pixels;
 

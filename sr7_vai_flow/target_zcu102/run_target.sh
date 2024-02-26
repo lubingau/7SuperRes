@@ -52,9 +52,10 @@ compile() {
     if [ "$1" = true ]; then
         echo "[SR7 INFO] Compiling CNN application"
         cd code
-        bash -x ./build_app.sh
+        mkdir build 2> /dev/null
+        # bash -x ./build_app.sh
+        g++ -o build/SuperRes7 src/SuperRes7.cpp `pkg-config --cflags --libs opencv4`
         mv code build/SuperRes7
-        #g++ -o build/SuperRes7 src/SuperRes7.cpp `pkg-config --cflags --libs opencv4`
         # g++ -o build/build_mask src/build_mask.cpp `pkg-config --cflags --libs opencv4`
         # bash -x ./build_get_dpu_fps.sh
         # mv code ../get_dpu_fps
@@ -64,7 +65,6 @@ compile() {
         echo "[SR7 INFO] Skipping CNN application compilation"
     fi
 }
-
 
 # now run the CNN model
 run_models() {
@@ -95,31 +95,48 @@ run_fps() {
 }
 
 # MAIN
-if [ "$1" = "--build" ]; then
-    compilation=true
-    rm -rf code/build/
-    mkdir code/build
-    echo "[SR7 INFO] Deleted build folder, ready for compilation"
-elif [ "$1" = "--no-build" ]; then
-    compilation=false
-else
-    echo "Usage: [--build | --no-build] [png_file] [patch_size] [stride] [output_dir] [--debug]"
-    exit 1
-fi
-if [ "$6" = "--debug" ]; then
-    echo "[SR7 INFO] Debug mode"
-    rm -rf debug
-    mkdir debug
-    cd debug
-    mkdir patcher runCNN runCNN/input runCNN/output rebuilder
-    cd ..
-fi
 
-png_file=$2
-patch_size=$3
-stride=$4
-output_dir=$5
-path_xmodel="/home/petalinux/target_zcu102/fsrcnn6_relu/model/fsrcnn6_relu.xmodel"
+if [ "$#" = 0 ]; then
+    echo "No arguments given. Using default parameters."
+    echo "Write --help or -h to get more informations."
+    compilation=true
+    png_file="../blr_sensor_image_crop_0.png"
+    patch_size=128
+    stride=0.9
+    output_dir="outputs/"
+    path_xmodel="/home/eau_kipik/SuperRes7/sr7_vai_flow/fsrcnn6_relu.xmodel" #"/home/petalinux/target_zcu102/fsrcnn6_relu/model/fsrcnn6_relu.xmodel"
+
+elif [ "$1" = "--help" ] || [ "$1" = "-h" ] || [ "$1" = "--h" ]; then
+    echo "Usage: [--build | --no-build] [png_file] [patch_size] [stride] [output_dir] [--debug]"
+    exit 1 
+
+else
+    if [ "$1" = "--build" ]; then
+        compilation=true
+        rm -rf code/build/
+        mkdir code/build
+        echo "[SR7 INFO] Deleted build folder, ready for compilation"
+    elif [ "$1" = "--no-build" ]; then
+        compilation=false
+    else
+        echo "Usage: [--build | --no-build] [png_file] [patch_size] [stride] [output_dir] [--debug]"
+        exit 1
+    fi
+    if [ "$6" = "--debug" ]; then
+        echo "[SR7 INFO] Debug mode"
+        rm -rf debug
+        mkdir debug
+        cd debug
+        mkdir patcher runCNN runCNN/input runCNN/output rebuilder
+        cd ..
+    fi
+
+    png_file=$2
+    patch_size=$3
+    stride=$4
+    output_dir=$5
+    path_xmodel="/home/petalinux/target_zcu102/fsrcnn6_relu/model/fsrcnn6_relu.xmodel"    
+fi
 
 #clean
 #dataset

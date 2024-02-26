@@ -16,45 +16,67 @@ using namespace std;
 
 
 void ListImages(const string &path, vector<string> &name_vec, vector<Mat>& img_patch_vec) {
-  name_vec.clear();
-  img_patch_vec.clear();
-  struct dirent *entry;
+    /*
+    A method to list all the images in a directory and store them in a vector.
 
-  /*Check if path is a valid directory path. */
-  struct stat s;
-  lstat(path.c_str(), &s);
-  if (!S_ISDIR(s.st_mode)) {
-    fprintf(stderr, "[SR7 ERROR Rebuilder - ListImages] %s is not a valid directory!\n", path.c_str());
-    exit(1);
-  }
+    Args:
+        path: The path of the directory containing the images.
+        name_vec: The vector where the names of the images will be stored.
+        img_patch_vec: The vector where the images will be stored.
+    */
 
-  DIR *dir = opendir(path.c_str());
-  if (dir == nullptr) {
-    fprintf(stderr, "[SR7 ERROR Rebuilder - ListImages] Open %s path failed.\n", path.c_str());
-    exit(1);
-  }
+    name_vec.clear();
+    img_patch_vec.clear();
+    struct dirent *entry;
 
-  while ((entry = readdir(dir)) != nullptr) {
-    if (entry->d_type == DT_REG || entry->d_type == DT_UNKNOWN) {
-      string name = entry->d_name;
-      string ext = name.substr(name.find_last_of(".") + 1);
-      if ((ext == "JPEG") || (ext == "jpeg") || (ext == "JPG") ||
-          (ext == "jpg") || (ext == "PNG") || (ext == "png")) {
-        name_vec.push_back(name);
-        string img_path = path + "/" + name;
-        Mat img = imread(img_path);
-        img_patch_vec.push_back(img);
-      }
+    /*Check if path is a valid directory path. */
+    struct stat s;
+    lstat(path.c_str(), &s);
+    if (!S_ISDIR(s.st_mode)) {
+        fprintf(stderr, "[SR7 ERROR Rebuilder - ListImages] %s is not a valid directory!\n", path.c_str());
+        exit(1);
     }
-  }
-  closedir(dir);
+
+    DIR *dir = opendir(path.c_str());
+    if (dir == nullptr) {
+        fprintf(stderr, "[SR7 ERROR Rebuilder - ListImages] Open %s path failed.\n", path.c_str());
+        exit(1);
+    }
+
+    while ((entry = readdir(dir)) != nullptr) {
+        if (entry->d_type == DT_REG || entry->d_type == DT_UNKNOWN) {
+        string name = entry->d_name;
+        string ext = name.substr(name.find_last_of(".") + 1);
+        if ((ext == "JPEG") || (ext == "jpeg") || (ext == "JPG") ||
+            (ext == "jpg") || (ext == "PNG") || (ext == "png")) {
+            name_vec.push_back(name);
+            string img_path = path + "/" + name;
+            Mat img = imread(img_path);
+            img_patch_vec.push_back(img);
+        }
+        }
+    }
+    closedir(dir);
 }
 
-void rebuild_image_2(const vector<Mat>& img_patch_vec, const vector<string>& name_vec, Mat& reconstruced_image, int patch_size, float stride
+void rebuild_image(const vector<Mat>& img_patch_vec, const vector<string>& name_vec, Mat& reconstruced_image, int patch_size, float stride
 #if DEBUG_REBUILDER
     , const string& output_images_folder
 #endif
 ) {
+    /*
+    A method to rebuild an image from patches and apply division rectangles to correct the overlapping regions due to the stride used.
+
+    Args:
+        img_patch_vec: The vector containing the patches to be used to rebuild the image.
+        name_vec: The vector containing the names of the patches.
+        reconstruced_image: The output image after rebuilding.
+        patch_size: The size of the patches.
+        stride: The stride used to create the patches.
+    if DEBUG:
+        output_images_folder: The folder where the patches divied by rectangles will be saved.
+    */
+
     cout << "[SR7 INFO Rebuilder] Start rebuilding image" << endl;
     cout << "[SR7 INFO Rebuilder] Found " << img_patch_vec.size() << " patches" << endl;
 
@@ -214,8 +236,8 @@ void rebuild_image_2(const vector<Mat>& img_patch_vec, const vector<string>& nam
             patch(corner_bottom_left) *= 0.25;
 #if DEBUG_REBUILDER
             imwrite(output_images_folder+patch_name,patch);
-#endif        }
-
+#endif        
+        }
         // Others right penultimate edge patches
         else if ((row==(n_patch_col-1)*stride_pixels) and (col!=0) and (col<reconstruced_image.rows-2*patch_size)){
             patch(left) *= 0.5;

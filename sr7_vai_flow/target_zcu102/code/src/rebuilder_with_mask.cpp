@@ -14,11 +14,22 @@ using namespace cv;
 using namespace std;
 
 
-void rebuild_image_and_mask(const vector<Mat>& img_patch_vec, const vector<string>& name_vec, Mat& reconstructed_image
+void rebuild_image_with_mask(const vector<Mat>& img_patch_vec, const vector<string>& name_vec, Mat& reconstructed_image
 #if DEBUG_REBUILDER
     , const string& output_images_folder
 #endif
 ) {
+    /*
+    A method to rebuild an image from patches and apply a mask to correct the overlapping regions due to the stride used.
+
+    Args:
+        img_patch_vec: The vector containing the patches to be used to rebuild the image.
+        name_vec: The vector containing the names of the patches.
+        reconstructed_image: The output image after rebuilding.
+    if DEBUG:
+        output_images_folder: The folder where the mask and the sum image will be saved.
+    */
+
     cout << "[SR7 INFO Rebuilder] Start to rebuild image" << endl;
     cout << "[SR7 INFO Rebuilder] Found " << img_patch_vec.size() << " patches\n" << endl;
 
