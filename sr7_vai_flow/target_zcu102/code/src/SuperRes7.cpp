@@ -2,6 +2,7 @@
 #include <chrono>
 #include "patcher.cpp"
 #include "rebuilder.cpp"
+#include "rebuilder_with_mask.cpp"
 #include "bilateral_filter.cpp"
 #include "runCNN.cpp"
 //#include "runCNN_test.cpp"
@@ -80,7 +81,7 @@ int main(int argc, char** argv) {
     for (int n = 0; n < img_patch_vec.size(); n++){
         Mat temp = img_patch_vec[n];
         img_patch_vec_temp.push_back(temp);
-        if (((n==img_patch_vec.size()-1)or(n%2000-1==0)) and (n>1)){
+        if (((n==img_patch_vec.size()-1)or(n%3000-1==0)) and (n>1)){
             cout << "\n[SR7 INFO AI] " << img_patch_vec_temp.size() << " patches into DPU\n" << endl;
 #if DEBUG_RUNCNN
             string debug_runCNN_input_folder = debug_folder + "runCNN/input/";
@@ -88,7 +89,7 @@ int main(int argc, char** argv) {
             runCNN(img_patch_vec_temp, doub_img_patch_vec_temp, path_xmodel, threads, debug_runCNN_input_folder, debug_runCNN_output_folder);
 #else
             runCNN(img_patch_vec_temp, doub_img_patch_vec_temp, path_xmodel, threads);
-            //extrapolateImages(img_patch_vec_temp, doub_img_patch_vec_temp);
+            // extrapolateImages(img_patch_vec_temp, doub_img_patch_vec_temp);
 #endif
             for (int i = 0; i < doub_img_patch_vec_temp.size(); i++){
                 doub_img_patch_vec.push_back(doub_img_patch_vec_temp[i]);
@@ -134,7 +135,8 @@ int main(int argc, char** argv) {
     string debug_rebuilder_folder = debug_folder + "rebuilder/";
     rebuild_image_and_mask(doub_img_patch_vec, name_vec, reconstructed_image, debug_rebuilder_folder);
 #else
-    rebuild_image_and_mask(doub_img_patch_vec, name_vec, reconstructed_image);
+    // vrebuild_image_and_mask(doub_img_patch_vec, name_vec, reconstructed_image);
+    rebuild_image_2(doub_img_patch_vec, name_vec, reconstructed_image, 2*patch_size, stride);
 #endif
     reconstructed_image.convertTo(reconstructed_image, CV_8UC3);
     doub_img_patch_vec.clear();

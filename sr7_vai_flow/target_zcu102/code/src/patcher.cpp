@@ -18,12 +18,13 @@ void patch_image(const Mat& image, vector<Mat>& image_arr, vector<string>& name_
 #endif
 ) {
     int stride_pixels = patch_size * stride;
+    int overlap = patch_size - stride_pixels;
 
     cout << "[SR7 INFO Patcher] Started patcher with patch size: " << patch_size << " and stride: " << stride << endl;
 
     // Regular patches
-    for (int i = 0; i < image.rows - patch_size; i += stride_pixels) {
-        for (int j = 0; j < image.cols - patch_size; j += stride_pixels) {
+    for (int i = 0; i < image.rows - patch_size - overlap; i += stride_pixels) {
+        for (int j = 0; j < image.cols - patch_size - overlap; j += stride_pixels) {
             Rect patch_rect(j, i, patch_size, patch_size);
             Mat patch = image(patch_rect).clone();
 
@@ -47,7 +48,7 @@ void patch_image(const Mat& image, vector<Mat>& image_arr, vector<string>& name_
     int last_patch_j = image.cols - patch_size;
     int last_patch_i = image.rows - patch_size;
 
-    for (int i = 0; i < image.rows - patch_size; i += stride_pixels) {
+    for (int i = 0; i < image.rows - patch_size - overlap; i += stride_pixels) {
         Rect patch_rect(last_patch_j, i, patch_size, patch_size);
         Mat patch = image(patch_rect).clone();
 
@@ -62,7 +63,7 @@ void patch_image(const Mat& image, vector<Mat>& image_arr, vector<string>& name_
     }
 
     // Edge patches
-    for (int j = 0; j < image.cols - patch_size; j += stride_pixels) {
+    for (int j = 0; j < image.cols - patch_size - overlap; j += stride_pixels) {
         Rect patch_rect(j, last_patch_i, patch_size, patch_size);
         Mat patch = image(patch_rect).clone();
         

@@ -7,6 +7,7 @@
 #include <vector>
 #include <dirent.h>
 #include <sys/stat.h>
+#include <cmath>
 
 #include "debug.h"
 
@@ -14,8 +15,9 @@ using namespace cv;
 using namespace std;
 
 
-void ListImages(const string &path, vector<string> &images_list) {
-  images_list.clear();
+void ListImages(const string &path, vector<string> &name_vec, vector<Mat>& img_patch_vec) {
+  name_vec.clear();
+  img_patch_vec.clear();
   struct dirent *entry;
 
   /*Check if path is a valid directory path. */
@@ -38,106 +40,381 @@ void ListImages(const string &path, vector<string> &images_list) {
       string ext = name.substr(name.find_last_of(".") + 1);
       if ((ext == "JPEG") || (ext == "jpeg") || (ext == "JPG") ||
           (ext == "jpg") || (ext == "PNG") || (ext == "png")) {
-        images_list.push_back(name);
+        name_vec.push_back(name);
+        string img_path = path + "/" + name;
+        Mat img = imread(img_path);
+        img_patch_vec.push_back(img);
       }
     }
   }
-
   closedir(dir);
 }
 
-void rebuild_image(Mat& image, const string& patch_folder) {
-
-    vector<string> images_list;
-    ListImages(patch_folder, images_list);
-    cout << "[SR7 INFO Rebuilder] Found " << images_list.size() << " patches\n";
-
-    for (const auto& patch_name : images_list) {
-        string patch_path = patch_folder + "/" + patch_name;
-        Mat patch = imread(patch_path);
-        if (patch.empty()) {
-            cout << "[SR7 ERROR Rebuilder] Unable to load patch from " << patch_path << endl;
-            return;
-        }
-
-        size_t i_pos = patch_name.find("i");
-        size_t j_pos = patch_name.find("j");
-        size_t endi_pos = patch_name.find("endi");
-        size_t endj_pos = patch_name.find("endj");
-
-        int row = stoi(patch_name.substr(i_pos + 1, endi_pos - i_pos - 1));
-        int col = stoi(patch_name.substr(j_pos + 1, endj_pos - j_pos - 1));
-
-        Rect patch_rect(2*row, 2*col, patch.rows, patch.cols); // 2*row and 2*col because the image has 2x the size of input sensor image
-
-        image(patch_rect) += patch;
-    }
-}
-
-
-void rebuild_image_and_mask(const vector<Mat>& img_patch_vec, const vector<string>& name_vec, Mat& reconstructed_image
+void rebuild_image_2(const vector<Mat>& img_patch_vec, const vector<string>& name_vec, Mat& reconstruced_image, int patch_size, float stride
 #if DEBUG_REBUILDER
     , const string& output_images_folder
 #endif
 ) {
-    cout << "[SR7 INFO Rebuilder] Start to rebuild image" << endl;
-    cout << "[SR7 INFO Rebuilder] Found " << img_patch_vec.size() << " patches\n" << endl;
+    cout << "[SR7 INFO Rebuilder] Start rebuilding image" << endl;
+    cout << "[SR7 INFO Rebuilder] Found " << img_patch_vec.size() << " patches" << endl;
 
-    Mat mask_patch(img_patch_vec[0].size(), CV_8U, Scalar(1));
-    Mat mask(reconstructed_image.size(), CV_8U, Scalar(0));
-    Mat sum_image(reconstructed_image.size(), CV_16UC3, Scalar(0, 0, 0));
+    int stride_pixels = patch_size * stride;
+    int overlap = patch_size - stride_pixels;
+    int underlap = patch_size - 2*overlap;
+    cout << "[SR7 INFO Rebuilder] Patch size : " << patch_size << endl;
+    cout << "[SR7 INFO Rebuilder] Stride ratio : " << stride << endl;
+    cout << "[SR7 INFO Rebuilder] Stride pixels : " << stride_pixels << endl;
+#if DEBUG_REBUILDER
+    cout << "[SR7 INFO Rebuilder] Underlap : " << underlap << endl;
+    cout << "[SR7 INFO Rebuilder] Overlap : " << overlap << endl;
+    cout << "[SR7 INFO Rebuilder] Cols : " << reconstruced_image.cols << endl;
+    cout << "[SR7 INFO Rebuilder] Rows : " << reconstruced_image.rows << endl;
+#endif
 
-    for (int n=0; n<img_patch_vec.size(); n++) {
-        Mat patch = img_patch_vec[n];
+    int n_patch_col = (reconstruced_image.cols-2*overlap)/stride_pixels;
+    int n_patch_row = (reconstruced_image.rows-2*overlap)/stride_pixels;
+#if DEBUG_REBUILDER
+    cout << "[SR7 INFO Rebuilder] n_patch_col : " << n_patch_col << endl;
+    cout << "[SR7 INFO Rebuilder] n_patch_row : " << n_patch_row << endl;
+#endif
+
+    int overlap_col = patch_size - (reconstruced_image.cols - n_patch_col*stride_pixels - overlap);
+    int overlap_row = patch_size - (reconstruced_image.rows - n_patch_row*stride_pixels - overlap);
+#if DEBUG_REBUILDER
+    cout << "[SR7 INFO Rebuilder] overlap_col : " << overlap_col << endl;
+    cout << "[SR7 INFO Rebuilder] overlap_row : " << overlap_row << endl;
+#endif
+
+    // Regular rectangles
+    Rect left(0, overlap, overlap, underlap);
+    Rect top(overlap, 0, underlap, overlap);
+    Rect right(underlap+overlap, overlap, overlap, underlap);
+    Rect bottom(overlap, underlap+overlap, underlap, overlap);
+
+    Rect corner_top_left(0, 0, overlap, overlap);
+    Rect corner_top_right(overlap+underlap, 0, overlap, overlap);
+    Rect corner_bottom_right(overlap+underlap, overlap+underlap, overlap, overlap);
+    Rect corner_bottom_left(0, overlap+underlap, overlap, overlap);
+
+    // Right penultimate edge rectangles
+    Rect pnl_R_bottom(overlap, underlap+overlap, patch_size-overlap_col-overlap, overlap);
+    Rect pnl_R_top(overlap, 0, patch_size-overlap_col-overlap, overlap);
+    Rect pnl_R_right(patch_size-overlap_col, overlap, overlap_col, underlap);
+    Rect pnl_R_corner_top_right(patch_size-overlap_col, 0, overlap_col, overlap);
+    Rect pnl_R_corner_bottom_right(patch_size-overlap_col, underlap+overlap, overlap_col, overlap);
+
+    // Right edge rectangles
+    Rect R_left(0, overlap, overlap_col, underlap);
+    Rect R_corner_top_left(0, 0, overlap_col, overlap);
+    Rect R_corner_bottom_left(0, underlap+overlap, overlap_col, overlap);
+    Rect R_corner_bottom_right(overlap_col, underlap+overlap, patch_size-overlap_col, overlap);
+    Rect R_corner_top_right(overlap_col, 0, patch_size-overlap_col, overlap);
+
+    // Bottom penultimate edge rectangles
+    Rect pnl_B_bottom(overlap, patch_size-overlap_row, underlap, overlap_row);
+    Rect pnl_B_corner_bottom_left(0, patch_size-overlap_row, overlap, overlap_row);
+    Rect pnl_B_corner_bottom_right(underlap+overlap, patch_size-overlap_row, overlap, overlap_row);
+    Rect pnl_B_right(underlap+overlap, overlap, overlap, underlap+overlap-overlap_row);
+    Rect pnl_B_left(0, overlap, overlap, underlap+overlap-overlap_row);
+
+    // Bottom edge rectangles
+    Rect B_top(overlap, 0, underlap, overlap_row);
+    Rect B_corner_top_left(0, 0, overlap, overlap_row);
+    Rect B_corner_top_right(underlap+overlap, 0, overlap, overlap_row);
+    Rect B_right(underlap+overlap, overlap_row, overlap, patch_size-overlap_row);
+    Rect B_left(0, overlap_row, overlap, patch_size-overlap_row);
+
+    // Bottom right penultimate corner
+    Rect pnl_BR_right(patch_size-overlap_col, overlap, overlap_col, underlap+overlap-overlap_row);
+    Rect pnl_BR_corner_bottom_right(underlap+overlap+overlap-overlap_col, patch_size-overlap_row, overlap_col, overlap_row);
+    Rect pnl_BR_bottom(overlap, patch_size-overlap_row, patch_size-overlap_col-overlap, overlap_row);
+
+    // Last penultimate corner
+    Rect pnl_L_top(overlap, 0, patch_size-overlap_col-overlap, overlap_row);
+    Rect pnl_L_corner_top_right(patch_size-overlap_col, 0, overlap_col, overlap_row);
+    Rect pnl_L_right(patch_size-overlap_col, overlap_row, overlap_col, patch_size-overlap_row);
+
+    // Last penultimate right corner
+    Rect pnl_LR_left(0, overlap, overlap_col, underlap+overlap-overlap_row);
+    Rect pnl_LR_corner_bottom_left(0, underlap+2*overlap-overlap_row, overlap_col, overlap_row);
+    Rect pnl_LR_corner_bottom_right(overlap_col, underlap+2*overlap-overlap_row, patch_size-overlap_col, overlap_row);
+    
+    // Last corners
+    Rect L_left(0, overlap_row, overlap_col, patch_size-overlap_row);
+    Rect L_top(0, 0, overlap_col, overlap_row);
+    Rect L_corner_top_right(overlap_col, 0, patch_size-overlap_col, overlap_row);
+
+
+    for (int n=0; n<name_vec.size(); n++){
         string patch_name = name_vec[n];
+        Mat patch = img_patch_vec[n];
 
         size_t i_pos = patch_name.find("i");
         size_t j_pos = patch_name.find("j");
         size_t endi_pos = patch_name.find("endi");
         size_t endj_pos = patch_name.find("endj");
 
-        int row = stoi(patch_name.substr(i_pos + 1, endi_pos - i_pos - 1));
-        int col = stoi(patch_name.substr(j_pos + 1, endj_pos - j_pos - 1));
+        int row = 2*stoi(patch_name.substr(i_pos + 1, endi_pos - i_pos - 1));
+        int col = 2*stoi(patch_name.substr(j_pos + 1, endj_pos - j_pos - 1));
 
-        Rect patch_rect(2*row, 2*col, patch.rows, patch.cols);
+        // First patch (top left corner)
+        if ((row == 0) and (col == 0)) {
+            patch(right) *= 0.5;
+            patch(bottom) *= 0.5;
 
-        sum_image(patch_rect) += patch;
-        mask(patch_rect) += mask_patch;
-
-        if ((n-1 % 100 == 0)or(n==img_patch_vec.size()-1)) {
-            cout << "\x1b[A";
-            cout << "[SR7 INFO Rebuilder] " << n+1 << " patches added" << endl;
-        }
-    }
-    cout << "[SR7 INFO Rebuilder] Total of " << img_patch_vec.size() << " patches added" << endl;
-
-    cout << "[SR7 INFO Rebuilder] Applying mask" << endl;
-    // Iterate over each pixel
-    for (int x = 0; x < reconstructed_image.rows; ++x) {
-        for (int y = 0; y < reconstructed_image.cols; ++y) {
-            int mask_pixel = mask.at<uchar>(x, y);
-            if (mask_pixel != 1) {
-                Vec3w image_pixel = sum_image.at<Vec3w>(x, y);
-                reconstructed_image.at<Vec3w>(x, y) = (Vec3w)(image_pixel / mask_pixel);
-            }
-            else {
-                reconstructed_image.at<Vec3w>(x, y) = sum_image.at<Vec3w>(x, y);
-            }
-        }
-    }
+            patch(corner_top_right) *= 0.5;
+            patch(corner_bottom_right) *= 0.25;
+            patch(corner_bottom_left) *= 0.5;
 #if DEBUG_REBUILDER
-    // multiply the mask by 32 to make it visible
-    mask *= 32;
-    string mask_filename = output_images_folder + "mask.png";
-    string sum_image_filename = output_images_folder + "sum_image.png";
-    sum_image.convertTo(sum_image, CV_8UC3);
-    imwrite(mask_filename, mask);
-    imwrite(sum_image_filename, sum_image);
-    mask.release();
-    sum_image.release();
-#else
-    mask.release();
-    sum_image.release();
+            imwrite(output_images_folder+patch_name,patch);
 #endif
-    cout << "[SR7 INFO Rebuilder] Mask applied!" << endl;
+        }
+        
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // Top edge patches
+        else if ((row!=0) and (col==0) and (row<reconstruced_image.cols-patch_size-stride_pixels)) {
+            patch(left) *= 0.5;
+            patch(right) *= 0.5;
+            patch(bottom) *= 0.5;
+            patch(corner_top_left) *= 0.5;
+            patch(corner_top_right) *= 0.5;
+
+            patch(corner_bottom_left) *= 0.25;
+            patch(corner_bottom_right) *= 0.25;
+#if DEBUG_REBUILDER
+            imwrite(output_images_folder+patch_name,patch);
+#endif
+        }
+
+        // Left edge patches
+        else if ((row==0) and (col!=0) and (col<reconstruced_image.rows-2*patch_size)){//-stride_pixels)){
+            patch(top) *= 0.5;
+            patch(right) *= 0.5;
+            patch(bottom) *= 0.5;
+            patch(corner_top_left) *= 0.5;
+            patch(corner_bottom_left) *= 0.5;
+
+            patch(corner_top_right) *= 0.25;
+            patch(corner_bottom_right) *= 0.25;
+#if DEBUG_REBUILDER
+            imwrite(output_images_folder+patch_name,patch);
+#endif
+        }
+
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // First right penultimate edge patch
+        else if ((row==(n_patch_col-1)*stride_pixels) and (col==0)){
+            patch(left) *= 0.5;
+            patch(corner_top_left) *= 0.5;
+            patch(pnl_R_bottom) *= 0.5;
+            patch(pnl_R_right) *= 0.5;
+            patch(pnl_R_corner_top_right) *= 0.5;
+
+            patch(pnl_R_corner_bottom_right) *= 0.25;
+            patch(corner_bottom_left) *= 0.25;
+#if DEBUG_REBUILDER
+            imwrite(output_images_folder+patch_name,patch);
+#endif        }
+
+        // Others right penultimate edge patches
+        else if ((row==(n_patch_col-1)*stride_pixels) and (col!=0) and (col<reconstruced_image.rows-2*patch_size)){
+            patch(left) *= 0.5;
+            patch(corner_top_left) *= 0.25;
+            patch(corner_bottom_left) *= 0.25;
+            patch(pnl_R_bottom) *= 0.5;
+            patch(pnl_R_right) *= 0.5;
+            patch(pnl_R_top) *= 0.5;
+            patch(pnl_R_corner_bottom_right) *= 0.25;
+            patch(pnl_R_corner_top_right) *= 0.25;
+#if DEBUG_REBUILDER
+            imwrite(output_images_folder+patch_name,patch);
+#endif
+        }
+
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // First right edge patch
+        else if ((row==reconstruced_image.cols-patch_size) and (col==0)){
+            patch(R_left) *= 0.5;
+            patch(R_corner_top_left) *= 0.5;
+            patch(R_corner_bottom_left) *= 0.25;
+            patch(R_corner_bottom_right) *= 0.5;
+#if DEBUG_REBUILDER
+            imwrite(output_images_folder+patch_name,patch);
+#endif
+        }
+
+        // Others right edge patches
+        else if ((row==reconstruced_image.cols-patch_size) and (col!=0) and (col<reconstruced_image.rows-2*patch_size)){
+            patch(R_left) *= 0.5;
+            patch(R_corner_top_left) *= 0.25;
+            patch(R_corner_bottom_left) *= 0.25;
+            patch(R_corner_bottom_right) *= 0.5;
+            patch(R_corner_top_right) *= 0.5;
+#if DEBUG_REBUILDER
+            imwrite(output_images_folder+patch_name,patch);
+#endif
+        }
+
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // First penultimate bottom edge patch
+        else if ((col==(n_patch_row-1)*stride_pixels) and (row==0)){
+            patch(top) *= 0.5;
+            patch(corner_top_left) *= 0.5;
+            patch(corner_top_right) *= 0.25;
+            
+            patch(pnl_B_right) *= 0.5;
+            patch(pnl_B_bottom) *= 0.5;
+            patch(pnl_B_corner_bottom_left) *= 0.5;
+            patch(pnl_B_corner_bottom_right) *= 0.25;
+#if DEBUG_REBUILDER
+            imwrite(output_images_folder+patch_name,patch);
+#endif
+        }
+
+        // Others penultimate bottom edge patch
+        else if ((col==(n_patch_row-1)*stride_pixels) and (row!=0) and (row<reconstruced_image.cols-2*patch_size)){
+            patch(top) *= 0.5;
+            patch(corner_top_left) *= 0.25;
+            patch(corner_top_right) *= 0.25;
+            
+            patch(pnl_B_right) *= 0.5;
+            patch(pnl_B_left) *= 0.5;
+            patch(pnl_B_bottom) *= 0.5;
+            patch(pnl_B_corner_bottom_left) *= 0.25;
+            patch(pnl_B_corner_bottom_right) *= 0.25;
+#if DEBUG_REBUILDER
+            imwrite(output_images_folder+patch_name,patch);
+#endif
+        }
+
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // First bottom edge patch
+        else if ((col==reconstruced_image.rows-patch_size) and (row==0)){
+            patch(B_top) *= 0.5;
+            patch(B_corner_top_left) *= 0.5;
+            patch(B_corner_top_right) *= 0.25;
+            patch(B_right) *= 0.5;
+#if DEBUG_REBUILDER
+            imwrite(output_images_folder+patch_name,patch);
+#endif
+        }
+
+        // Others bottom edge patch
+        else if ((col==reconstruced_image.rows-patch_size) and (row!=0) and (row<reconstruced_image.cols-2*patch_size)){
+            patch(B_top) *= 0.5;
+            patch(B_corner_top_left) *= 0.25;
+            patch(B_corner_top_right) *= 0.25;
+            patch(B_left) *= 0.5;
+            patch(B_right) *= 0.5;
+#if DEBUG_REBUILDER
+            imwrite(output_images_folder+patch_name,patch);
+#endif
+        }
+
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // Penultimate corner right patch
+        else if ((row==(n_patch_col-1)*stride_pixels) and (col==(n_patch_row-1)*stride_pixels)){
+            patch(corner_top_left) *= 0.25;
+            patch(pnl_R_top) *= 0.5;
+            patch(pnl_R_corner_top_right) *= 0.25;
+            patch(pnl_BR_right) *= 0.5;
+            patch(pnl_B_left) *= 0.5;
+            patch(pnl_B_corner_bottom_left) *= 0.25;
+            patch(pnl_BR_bottom) *= 0.5;
+            patch(pnl_BR_corner_bottom_right) *= 0.25;
+#if DEBUG_REBUILDER
+            imwrite(output_images_folder+patch_name,patch);
+#endif
+        }
+
+        // Last penultimate corner
+        else if ((row==reconstruced_image.cols-patch_size) and (col==(n_patch_row-1)*stride_pixels)){
+            patch(pnl_LR_left) *= 0.5;
+            patch(R_corner_top_right) *= 0.5;
+            patch(R_corner_top_left) *= 0.25;
+            patch(pnl_LR_corner_bottom_left) *= 0.25;
+            patch(pnl_LR_corner_bottom_right) *= 0.5;
+#if DEBUG_REBUILDER
+            imwrite(output_images_folder+patch_name,patch);
+#endif
+        }
+        
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // Penultimate corner bottom patch
+        else if ((row==(n_patch_col-1)*stride_pixels) and (col==reconstruced_image.rows-patch_size)){            
+            patch(B_corner_top_left) *= 0.25;
+            patch(B_left) *= 0.5;
+            patch(pnl_L_top) *= 0.5;
+            patch(pnl_L_corner_top_right) *= 0.25;
+            patch(pnl_L_right) *= 0.5;
+#if DEBUG_REBUILDER
+            imwrite(output_images_folder+patch_name,patch);
+#endif
+        }
+
+        // Last corner
+        else if ((row==reconstruced_image.cols-patch_size) and (col==reconstruced_image.rows-patch_size)){
+            patch(L_left) *= 0.5;
+            patch(L_top) *= 0.25;
+            patch(L_corner_top_right) *= 0.5;
+#if DEBUG_REBUILDER
+            imwrite(output_images_folder+patch_name,patch);
+#endif
+        }
+
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // Center patches
+        else if ((row!=0) and (col!=0) and (col-stride<reconstruced_image.rows-2*patch_size) and (row<reconstruced_image.cols-2*patch_size)){
+            patch(left) *= 0.5;
+            patch(top) *= 0.5;
+            patch(right) *= 0.5;
+            patch(bottom) *= 0.5;
+
+            patch(corner_top_left) *= 0.25;
+            patch(corner_top_right) *= 0.25;
+            patch(corner_bottom_right) *= 0.25;
+            patch(corner_bottom_left) *= 0.25;
+#if DEBUG_REBUILDER
+            imwrite(output_images_folder+patch_name,patch);
+#endif
+        }
+
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // ERROR
+        else {
+            cout << "[SR7 ERROR Rebuilder] Patch " << patch_name << " is not in the right position" << endl;
+        }
+
+        // Apply patch on the reconstructed image
+        Rect patch_rect(row, col, patch.rows, patch.cols);
+        reconstruced_image(patch_rect) += patch;
+    }
 }
+
+// int main(int argc, char const *argv[])
+// {   
+//     if (argc < 5) {
+//         cout << "Usage: ./rebuilder <path_image> <patch_folder> <patch_size> <stride>\n";
+//         return -1;
+//     }
+//     string path_image = argv[1];
+//     string patch_folder = argv[2];
+//     int patch_size = stoi(argv[3]);
+//     float stride = stof(argv[4]);
+    
+//     // string patch_folder = "../../debug/patcher/";
+//     vector<Mat> img_patch_vec;
+//     vector<string> name_vec;
+//     ListImages(patch_folder, name_vec, img_patch_vec);
+
+//     Mat image = imread(path_image);
+//     int IMG_WIDTH = image.cols;
+//     int IMG_HEIGHT = image.rows;
+//     Mat reconstructed_image(IMG_HEIGHT, IMG_WIDTH, CV_8UC3);
+    
+//     cout << "[SR7 INFO Rebuilder] Found " << name_vec.size() << " patches\n";
+//     rebuild_image_2(img_patch_vec, name_vec, reconstructed_image, patch_size, stride);
+    
+//     imwrite("../../debug/rebuilder/reconstructed_image.png", reconstructed_image);
+//     return 0;
+// }
