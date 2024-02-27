@@ -5,8 +5,8 @@
 #include <cmath>
 #include <iostream>
 #include "rebuilder.cpp"
-#include "runCNN_test.cpp"
-//#include "runCNN.cpp"
+//#include "runCNN_test.cpp"
+#include "runCNN.cpp"
 
 using namespace std;
 using namespace cv;
@@ -52,13 +52,14 @@ void PSNR(vector<Mat>& predict_patches, vector<Mat>& gt_patches) {
 
 int main(int argc, char const *argv[]){
     
-    if (argc < 3) {
-         cout << "Usage: ./eval <blr_patches_path> <gt_patches_path> \n";
+    if (argc < 4) {
+         cout << "Usage: ./eval <blr_patches_path> <gt_patches_path> <path_xmodel> \n";
          return -1;
     }
     
     string blr_patches_path = argv[1];
     string gt_patches_path = argv[2];
+    string path_xmodel = argv[3];
 
     vector<Mat> img_blr_patch_vec;
     vector<Mat> img_gt_patch_vec;
@@ -71,7 +72,10 @@ int main(int argc, char const *argv[]){
     ListImages(blr_patches_path, name_blr_vec, img_blr_patch_vec);
     ListImages(gt_patches_path, name_gt_vec, img_gt_patch_vec);
 
-    extrapolateImages(img_blr_patch_vec, img_predict_patch_vec);
+    //extrapolateImages(img_blr_patch_vec, img_predict_patch_vec);
+
+    int threads = 6;
+    runCNN(img_blr_patch_vec, img_predict_patch_vec, path_xmodel, threads);
 
     PSNR(img_predict_patch_vec, img_gt_patch_vec);
 }
