@@ -2,16 +2,16 @@
 
 # Evaluate the performance of the CNN application by measuring PSNR 
 
-if [ "$1" = "--build" ]; then
+if [ "$1" = "--no-build" ]; then
+    echo "[SR7 INFO] Skipping evaluation application compilation"
+elif [ $# -eq 0 ]; then
     echo "[SR7 INFO] Compiling evaluation application"
     mkdir build 2> /dev/null
     bash -x ./code/build_eval.sh
     echo " "
     mv code/code build/eval
-elif [ "$1" = '--no-build']; then
-    echo "[SR7 INFO] Skipping evaluation application compilation"
 else
-    echo "Usage: ./eval.sh [--build|--no-build]"
+    echo "Usage: ./eval.sh [--no-build]"
     exit 1
 fi
 echo " "
