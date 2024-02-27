@@ -8,11 +8,10 @@
 #include "runCNN_test.cpp"
 //#include "runCNN.cpp"
 
+#include "debug.h"
+
 using namespace std;
 using namespace cv;
-
-#define DEBUG_PSNR 1 
-#define DEBUG_SAVE 0
 
 double calculateMSE(const Mat& img1, const Mat& img2) {
     Mat diff;
