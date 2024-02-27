@@ -46,7 +46,7 @@ void PSNR(vector<Mat>& predict_patches, vector<Mat>& gt_patches) {
         double mse = calculateMSE(predict_patches[i], gt_patches[i]);
         double psnr = calculatePSNR(mse, 255.0); // assuming pixel values are in [0, 255]
         totalPSNR += psnr;
-#if DEBUG_PSNR
+#if DEBUG_EVAL_PSNR
         cout << "[SR7 INFO Evaluation] PSNR for image " << i << ": " << psnr << " dB" << endl;
 #endif
     }
@@ -78,7 +78,7 @@ int main(int argc, char const *argv[]){
 
     int threads = 6;
 
-#if DEBUG_SAVE
+#if DEBUG_EVAL_SAVE
     string debug_folder = "../../debug/";
     string debug_eval_input_folder = debug_folder + "eval/input/";
     string debug_eval_output_folder = debug_folder + "eval/output/";
@@ -93,10 +93,10 @@ int main(int argc, char const *argv[]){
     }
     cout << "[SR7 INFO Evaluation] Finished to save input and predicted images!" << endl; */
 
-    runCNN(img_patch_vec_temp, doub_img_patch_vec_temp, path_xmodel, threads, debug_eval_input_folder, debug_eval_output_folder);
+    runCNN(img_blr_patch_vec, img_predict_patch_vec, path_xmodel, threads, debug_eval_input_folder, debug_eval_output_folder);
 #else
-    runCNN(img_patch_vec_temp, doub_img_patch_vec_temp, path_xmodel, threads);
-    //extrapolateImages(img_patch_vec_temp, doub_img_patch_vec_temp);
+    runCNN(img_blr_patch_vec, img_predict_patch_vec, path_xmodel, threads);
+    //extrapolateImages(img_blr_patch_vec, img_predict_patch_vec);
 #endif
 
     cout << "[SR7 INFO Evaluation] Calculating PSNR..." << endl;

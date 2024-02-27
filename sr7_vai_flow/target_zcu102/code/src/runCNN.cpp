@@ -113,7 +113,7 @@ void runDPU(vart::Runner *runner, int8_t *inputBuffer, int8_t *outputBuffer, Gra
 
 
 void runCNN(const vector<Mat>& inputImages, vector<Mat>& outputImages, const string xmodel_path, int num_threads
-#if DEBUG_RUNCNN
+#if DEBUG_RUNCNN || DEBUG_EVAL_SAVE
     , const string& input_folder, const string& output_folder
 #endif
 ) {
