@@ -53,6 +53,7 @@ def patch_image(img_path, gt_out_folder, blr_out_folder, patch_size, blur_kernel
 
             cv2.imwrite(gt_patch_path, gt_patch)
             cv2.imwrite(blr_patch_path, blr_patch)
+    print(f"[SR7 INFO DATASET] Image {img_path} processed.")
 
 if __name__ == '__main__':
 
@@ -66,6 +67,7 @@ if __name__ == '__main__':
     
     args = parser.parse_args()
 
+    print("[SR7 INFO DATASET] Starting to create the dataset...")
     input_images_folder = args.input_dir
     gt_output_images_folder = os.path.join(args.output_dir, "gt")
     blr_output_images_folder = os.path.join(args.output_dir, "blr")
@@ -76,6 +78,7 @@ if __name__ == '__main__':
     
     blur_kernel = np.genfromtxt(kernel_path, delimiter=';')
     blur_kernel = blur_kernel[:,:-1] # remove the last column of nan because of the delimiter
+    print("[SR7 INFO DATASET] Blur kernel loaded. Kernel shape: ", blur_kernel.shape)
     
     os.makedirs(gt_output_images_folder, exist_ok=True)
     os.makedirs(blr_output_images_folder, exist_ok=True)
@@ -84,7 +87,14 @@ if __name__ == '__main__':
     if nb_img == -1:
         nb_img = len(input_images)       
 
+    print(f"[SR7 INFO DATASET] Number of images to process: {nb_img}")
+    print(f"[SR7 INFO DATASET] Patch size: {patch_size}")
+    print(f"[SR7 INFO DATASET] Stride ratio: {stride_ratio}")
+    print(f"[SR7 INFO DATASET] Starting to process the images...")
+
     with Pool() as p:
         p.starmap(patch_image, [(os.path.join(input_images_folder, img_name), 
                                  gt_output_images_folder,
                                  blr_output_images_folder, patch_size, blur_kernel, stride_ratio) for img_name in input_images[:nb_img]])
+    
+    print(f"[SR7 INFO DATASET] Dataset created. Patches saved in {gt_output_images_folder} and {blr_output_images_folder}.")
