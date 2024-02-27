@@ -127,7 +127,7 @@ else
         rm -rf debug
         mkdir debug
         cd debug
-        mkdir patcher runCNN runCNN/input runCNN/output rebuilder
+        mkdir patcher runCNN runCNN/input runCNN/output rebuilder eval eval/input eval/output
         cd ..
     fi
 
