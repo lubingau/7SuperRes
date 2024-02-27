@@ -5,8 +5,8 @@
 #include <cmath>
 #include <iostream>
 #include "rebuilder.cpp"
-#include "runCNN_test.cpp"
-//#include "runCNN.cpp"
+// #include "runCNN_test.cpp"
+#include "runCNN.cpp"
 
 #include "debug.h"
 
