@@ -7,7 +7,7 @@ if [ "$1" = "--build" ]; then
     mkdir build 2> /dev/null
     bash -x ./code/build_eval.sh
     echo " "
-    mv code/build_eval build/eval
+    mv code/code build/eval
 elif [ "$1" = '--no-build']; then
     echo "[SR7 INFO] Skipping evaluation application compilation"
 else
