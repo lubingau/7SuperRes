@@ -7,6 +7,7 @@ if [ "$1" = "--no-build" ]; then
 elif [ $# -eq 0 ]; then
     echo "[SR7 INFO] Compiling evaluation application"
     mkdir build 2> /dev/null
+    mkdir debug debug/eval debug/eval/input debug/eval/output 2> /dev/null
     bash -x ./code/build_eval.sh
     echo " "
     mv code/code build/eval
@@ -15,5 +16,5 @@ else
     exit 1
 fi
 echo " "
-./build/eval "../sr7_dataset/test/blr" "../sr7_dataset/test/gt" "/home/petalinux/target_zcu102/fsrcnn6_relu/model/fsrcnn6_relu.xmodel"
+./build/eval "../sr7_dataset/test" "/home/petalinux/target_zcu102/fsrcnn6_relu/model/fsrcnn6_relu.xmodel"
 
