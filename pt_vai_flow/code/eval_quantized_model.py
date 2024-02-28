@@ -46,7 +46,7 @@ def get_arguments():
     parser.add_argument("--save_images", action="store_true",
                         help="save predicted images")
     # saving path
-    parser.add_argument("--save_images_dir", type=str,
+    parser.add_argument("--save_images_dir", type=str, default="",
                         help="saving directory")
     
     ## IF YOU WANT TO USE GPU UNCOMMENT THE FOLLOWING LINE

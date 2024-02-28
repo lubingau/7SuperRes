@@ -107,6 +107,7 @@ void rebuild_image(const vector<Mat>& img_patch_vec, const vector<string>& name_
     cout << "[SR7 INFO Rebuilder] overlap_row : " << overlap_row << endl;
 #endif
 
+    if (stride!=1.0) {
     // Regular rectangles
     Rect left(0, overlap, overlap, underlap);
     Rect top(overlap, 0, underlap, overlap);
@@ -165,7 +166,7 @@ void rebuild_image(const vector<Mat>& img_patch_vec, const vector<string>& name_
     Rect L_left(0, overlap_row, overlap_col, patch_size-overlap_row);
     Rect L_top(0, 0, overlap_col, overlap_row);
     Rect L_corner_top_right(overlap_col, 0, patch_size-overlap_col, overlap_row);
-
+    }
 
     for (int n=0; n<name_vec.size(); n++){
         string patch_name = name_vec[n];
@@ -179,6 +180,7 @@ void rebuild_image(const vector<Mat>& img_patch_vec, const vector<string>& name_
         int row = 2*stoi(patch_name.substr(i_pos + 1, endi_pos - i_pos - 1));
         int col = 2*stoi(patch_name.substr(j_pos + 1, endj_pos - j_pos - 1));
 
+        if (stride!=1.0) {
         // First patch (top left corner)
         if ((row == 0) and (col == 0)) {
             patch(right) *= 0.5;
@@ -406,7 +408,8 @@ void rebuild_image(const vector<Mat>& img_patch_vec, const vector<string>& name_
         else {
             cout << "[SR7 ERROR Rebuilder] Patch " << patch_name << " is not in the right position" << endl;
         }
-
+        }
+    
         // Apply patch on the reconstructed image
         Rect patch_rect(row, col, patch.rows, patch.cols);
         reconstruced_image(patch_rect) += patch;
