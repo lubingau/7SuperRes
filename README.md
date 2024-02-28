@@ -11,21 +11,40 @@ Download our dataset [here](https://drive.google.com/drive/folders/1xJYEhfPTt9Ox
 You should have this structure:
 ```
 SuperRes7
-├── sr7_dataset
-│   ├── test
-│   │   ├── blr
-│   │   └── gt
-│   └── train
-│       ├── blr
-│       └── gt
-├── sr7_vai_flow
-│   ├── build
-│   ├── code
-│   ├── input_model
-│   └── target_zcu102
 ├── doc
 ├── pkgs
-└── training
+├── pt_vai_flow
+│   ├── build
+│   ├── code
+│   └── input_model
+├── seg_dataset
+│   ├── test
+│   │   ├── image
+│   │   └── mask
+│   └── train
+│       ├── image
+│       └── mask
+├── seg_training
+├── supres_dataset
+│   ├── test
+│   │   ├── blr
+│   │   └── gt
+│   └── train
+│       ├── blr
+│       └── gt
+├── supres_training
+├── target_zcu102
+│   ├── build
+│   ├── code
+│   ├── debug
+│   ├── input
+│   ├── log
+│   ├── model
+│   └── output
+└── tf_vai_flow
+    ├── build
+    ├── code
+    └── input_model
 ```
 
 To begin with, you need to install the required packages:
