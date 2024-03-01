@@ -119,8 +119,8 @@ Once the model is trained, it needs to be quantized and compiled with Vitis AI t
     This operation might take some time (~20 minutes). If you want to use gpu instead of cpu, you can but we haven't tried it
 3. Once the process is finished, you should see something like this with the command ```sudo docker images```:
     ```text
-    REPOSITORY                        TAG      IMAGE ID       CREATED         SIZE
-    xilinx/vitis-ai-tensorflow2-cpu   latest   e1501ac96fd0   10 days ago     6.75GB
+    REPOSITORY                        TAG         IMAGE ID       CREATED         SIZE
+    xilinx/vitis-ai-tensorflow2-cpu   3.0.0.001   e1501ac96fd0   XX days ago     6.75GB
     ```
 4. You will need to install some missing packages and libraries into the Vitis AI container. Copy the file `setup_docker_env.sh` into the `Vitis-AI` folder
     ```bash
@@ -135,7 +135,7 @@ Once the model is trained, it needs to be quantized and compiled with Vitis AI t
 6. To launch the docker container with Vitis AI tools, execute the following commands from the `Vitis-AI` folder:
     ```bash
     cd Vitis-AI/
-    sudo ./docker_run.sh xilinx/vitis-ai-tensorflow2-cpu:latest
+    sudo ./docker_run.sh xilinx/vitis-ai-tensorflow2-cpu:3.0.0.001
     ```
 7. Once you are into the Vitis AI container, execute the following script to install some missing packages and libraries:
     ```bash
@@ -144,6 +144,8 @@ Once the model is trained, it needs to be quantized and compiled with Vitis AI t
 8. Voilà! You are ready to play with Vitis AI tools.
 
 ***WARNING**: you will need to execute the `setup_docker_env.sh` script each time you launch the Vitis AI container.*
+
+***WARNING**: you must launch the **3.0.0.001 version** of the docker. If you launch the latest version, it will launch the 3.5 version, and the quantizer will not works because the missing package is only for the 3.0 version of vitis-AI.*
 
 <br>
 
