@@ -1,15 +1,30 @@
-#!/bin/bash
+#!/bin/sh
 
 # Copyright © 2023 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
 
-# Author: Daniele Bagni, Xilinx Inc
-# date:  28 Apr. 2023
+## Author: Daniele Bagni, AMD/Xilinx Inc
+
+## date 10 Aug 2023
+
+# REMEMBER THAT $1 is the "main" routine
+# LOG_FILENAME=$2
+# MODEL_NAME=$3
+
+
+echo " "
+echo "==========================================================================="
+echo "WARNING: "
+echo "  'run_all.sh' MUST ALWAYS BE LAUNCHED BELOW THE 'files' FOLDER LEVEL "
+echo "  (SAME LEVEL OF 'scripts' AND 'target' FOLDER)                       "
+echo "  AS IT APPLIES RELATIVE PATH AND NOT ABSOLUTE PATHS                  "
+echo "==========================================================================="
+echo " "
 
 # read arguments of the script
 if [ $# -eq 0 ]; then
     echo "No arguments provided"
-    FLOAT_MODEL_FILENAME=fsrcnn6_relu.h5
+    FLOAT_MODEL_FILENAME=fsrcnn6_relu_35ep.pt
     echo "Using default model: ${FLOAT_MODEL_FILENAME}"
 else
     FLOAT_MODEL_FILENAME=$1
@@ -17,7 +32,8 @@ else
 fi
 
 CNN=${FLOAT_MODEL_FILENAME%.*}
-QUANTIZED_MODEL_FILENAME=${FLOAT_MODEL_FILENAME%.*}_quantized.h5
+QUANTIZED_MODEL_FILENAME="FSRCNN_int.pt"
+ARCH="/opt/vitis_ai/compiler/arch/DPUCZDX8G/ZCU102/arch.json"
 
 # folders
 WORK_DIR=./build
@@ -26,7 +42,7 @@ TARGET_102=${WORK_DIR}/../target_zcu102
 # ADD YOUR TARGET BOARD HERE
 
 MODEL_DIR=${WORK_DIR}/../input_model
-DATASET_DIR=${WORK_DIR}/../../sr7_dataset
+DATASET_DIR=../supres_dataset
 
 LOG_DIR=${WORK_DIR}/0_log
 QUANT_DIR=${WORK_DIR}/1_quantize_model
@@ -45,8 +61,6 @@ COMP_LOG=${CNN}_compile.log
 
 ##################################################################################
 
-
-
 0_clean_and_make_directories() {
     echo " "
     echo "##################################################################################"
@@ -59,29 +73,63 @@ COMP_LOG=${CNN}_compile.log
 
     mkdir ${LOG_DIR} ${QUANT_DIR} ${COMPILE_DIR} ${PREDICT_DIR} 2> /dev/null
     mkdir ${LOG_DIR}/${CNN} ${QUANT_DIR}/${CNN} ${COMPILE_DIR}/${CNN} ${PREDICT_DIR}/${CNN} 2> /dev/null
-    mkdir ${PREDICT_FLOAT_DIR} ${PREDICT_QUANT_DIR} ${PREDICT_GT_DIR} ${PREDICT_LR_DIR} #2> /dev/null
+    mkdir ${PREDICT_FLOAT_DIR} ${PREDICT_QUANT_DIR} ${PREDICT_GT_DIR} ${PREDICT_LR_DIR} 2> /dev/null
 }
 
 
-##################################################################################
-# quantize the model
-1_quantize_model() {
+# ===========================================================================
+# STEP4: Vitis AI Quantization of ResNet18 on VCoR
+# ===========================================================================
+1_quantize_model(){
     echo " "
-    echo "##########################################################################"
-    echo "Step2: CNN QUANTIZATION"
-    echo "##########################################################################"
-    echo " "
-    # display the version of the quantizer
-    echo "Using quantizer:"
-    pip show -f vai_q_tensorflow2 | grep -E "Name:|Version:"
-    echo " "
-    # quantize
+    echo "----------------------------------------------------------------------------------"
+    echo "[DB INFO STEP4] QUANTIZE VCoR TRAINED CNN"
+    echo "----------------------------------------------------------------------------------"
+    # bash -x ./scripts/run_quant.sh
+
+    #WEIGHTS=./pt_vehicle-color-classification_VCoR_224_224_3.64G_3.0/float
+    # WEIGHTS=./build/float
+    # GPU_ID=0
+    #QUANT_DIR=${QUANT_DIR:-quantized}
+    # QUANT_DIR=./build/quantized
+    export PYTHONPATH=${PWD}:${PYTHONPATH}
+
     cd code
-    python vai_q_tensorflow2.py \
+    echo "Conducting Quantization"
+
+    # fix calib
+    echo "-----------------------------------------------------------"
+    echo "------------------------CALIBRATION------------------------"
+    echo "-----------------------------------------------------------"
+    python vai_q_pytorch.py \
         --float_model_file ../${MODEL_DIR}/${FLOAT_MODEL_FILENAME} \
-        --quantized_model_file ../${QUANT_DIR}/${CNN}/${QUANTIZED_MODEL_FILENAME} \
+        --quantized_model_dir ../${QUANT_DIR}/${CNN} \
+        --dataset_dir ../${DATASET_DIR} \
+        --quant_mode calib \
         --calib_num_img 1000
-    cd ..
+
+    # fix test
+    echo "----------------------------------------------------"
+    echo "------------------------TEST------------------------"
+    echo "----------------------------------------------------"
+    python vai_q_pytorch.py \
+        --float_model_file ../${MODEL_DIR}/${FLOAT_MODEL_FILENAME} \
+        --quantized_model_dir ../${QUANT_DIR}/${CNN} \
+        --dataset_dir ../${DATASET_DIR} \
+        --quant_mode test \
+        --calib_num_img 1000
+    
+    # deploy
+    echo "------------------------------------------------------"
+    echo "------------------------DEPLOY------------------------"
+    echo "------------------------------------------------------"
+    python vai_q_pytorch.py \
+        --float_model_file ../${MODEL_DIR}/${FLOAT_MODEL_FILENAME} \
+        --quantized_model_dir ../${QUANT_DIR}/${CNN} \
+        --dataset_dir ../${DATASET_DIR} \
+        --quant_mode test \
+        --calib_num_img 1000 \
+        --deploy
 }
 
 ##################################################################################
@@ -103,23 +151,24 @@ COMP_LOG=${CNN}_compile.log
     cd ..
 }
 
-
-##################################################################################
-# Compile xmodel file for ZCU102 board with Vitis AI Compiler
-3_compile_vai_zcu102() {
-   echo " "
-   echo "##########################################################################"
-   echo "COMPILE CNN XMODEL FILE WITH Vitis AI for ZCU102"
-   echo "##########################################################################"
-   echo " "
-
-   vai_c_tensorflow2 \
-      --model ${QUANT_DIR}/${CNN}/${QUANTIZED_MODEL_FILENAME} \
-      --arch /opt/vitis_ai/compiler/arch/DPUCZDX8G/ZCU102/arch.json \
-      --output_dir ${COMPILE_DIR}/${CNN} \
-      --options    "{'mode':'normal'}" \
-      --net_name ${CNN}
-   }
+# ===========================================================================
+# STEP5: Vitis AI Compile ResNet18 VCoR for Target Board
+# ===========================================================================
+3_compile_vai_zcu102(){
+    echo " "
+    echo "----------------------------------------------------------------------------------"
+    echo "[DB INFO STEP5] COMPILE VCoR QUANTIZED CNN"
+    echo "----------------------------------------------------------------------------------"
+    echo " "
+    QUANTIZED_XMODEL_MODEL_FILENAME=${QUANTIZED_MODEL_FILENAME%.*}.xmodel
+    vai_c_xir \
+        --xmodel          ${QUANT_DIR}/${CNN}/${QUANTIZED_XMODEL_MODEL_FILENAME} \
+        --arch            ${ARCH} \
+        --output_dir      ${COMPILE_DIR}/${CNN} \
+        --net_name        ${CNN}
+    #	--options         "{'mode':'debug'}"
+    #  --options         '{"input_shape": "1,224,224,3"}'
+}
 
 ##################################################################################
 # Display subgraphs
@@ -136,37 +185,41 @@ COMP_LOG=${CNN}_compile.log
 
   }
 
+# ===========================================================================
+# main for VCoR
+# ===========================================================================
+# do not change the order of the following commands
 
-##################################################################################
-##################################################################################
-# MAIN
 
+main_vcor(){
+  echo " "
+  echo " "
+#   vcor_dataset            # 2
+#   vcor_training           # 3
+  vcor_quantize_resnet18  # 4
+  vcor_compile_resnet18   # 5
+  ###cross compile the application on target
+  ##cd target
+  ##source ./vcor/run_all_vcor_target.sh compile_cif10
+  ##cd ..
+  echo " "
+  echo " "
+}
+
+
+# ===========================================================================
+# main for all
+# ===========================================================================
+
+# do not change the order of the following commands
+
+pip install randaugment
+pip install torchsummary
+# clean_dos2unix
 0_clean_and_make_directories
-
-# quantize
-1_quantize_model #2>&1 | tee ${LOG_DIR}/${CNN}/${QUANT_LOG}
-
-# evaluate post-quantization model
-2_eval_quantized_model #2>&1 | tee ${LOG_DIR}/${CNN}/${EVAL_Q_LOG}
-
-# compile for ZCU102 board
-3_compile_vai_zcu102 2>&1 | tee ${LOG_DIR}/${CNN}/${COMP_LOG}
-
-# display subgraphs
+1_quantize_model
+2_eval_quantized_model
+3_compile_vai_zcu102
 4_display_subgraphs
 
-# move xmodel file to target board directory
-mkdir ${TARGET_102}/${CNN} 2> /dev/null
-mkdir ${TARGET_102}/${CNN}/model 2> /dev/null
-cp ${COMPILE_DIR}/${CNN}/*.xmodel   ${TARGET_102}/${CNN}/model/
-cp ${COMPILE_DIR}/${CNN}/*.json     ${TARGET_102}/${CNN}/model/
 
-output_folder=${COMPILE_DIR}/${CNN}/
-
-echo " "
-echo "#####################################"
-echo "MAIN CNN FLOW COMPLETED"
-echo "#####################################"
-echo "Find the output files in the folders:"
-echo "---> ${output_folder}"
-echo "#####################################"

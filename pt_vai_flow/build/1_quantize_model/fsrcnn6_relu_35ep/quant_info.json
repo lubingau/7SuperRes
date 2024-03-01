@@ -1,0 +1,47 @@
+{
+  "param":
+  {
+    "FSRCNN::feature_extraction.0.weight":[[8,8]],
+    "FSRCNN::feature_extraction.0.bias":[[8,9]],
+    "FSRCNN::shrinking.0.weight":[[8,8]],
+    "FSRCNN::shrinking.0.bias":[[8,9]],
+    "FSRCNN::mapping.0.weight":[[8,8]],
+    "FSRCNN::mapping.0.bias":[[8,10]],
+    "FSRCNN::mapping.2.weight":[[8,8]],
+    "FSRCNN::mapping.2.bias":[[8,10]],
+    "FSRCNN::mapping.4.weight":[[8,7]],
+    "FSRCNN::mapping.4.bias":[[8,10]],
+    "FSRCNN::mapping.6.weight":[[8,7]],
+    "FSRCNN::mapping.6.bias":[[8,11]],
+    "FSRCNN::mapping.8.weight":[[8,7]],
+    "FSRCNN::mapping.8.bias":[[8,10]],
+    "FSRCNN::mapping.10.weight":[[8,7]],
+    "FSRCNN::mapping.10.bias":[[8,9]],
+    "FSRCNN::expanding.0.weight":[[8,8]],
+    "FSRCNN::expanding.0.bias":[[8,9]],
+    "FSRCNN::deconvolution.weight":[[8,8]],
+    "FSRCNN::deconvolution.bias":[[8,11]]
+  },
+  "output":
+  {
+    "FSRCNN::nndct_input_0":[[8,6]],
+    "FSRCNN::nndct_relu_2":[[8,6]],
+    "FSRCNN::nndct_relu_4":[[8,6]],
+    "FSRCNN::nndct_relu_6":[[8,6]],
+    "FSRCNN::nndct_relu_8":[[8,7]],
+    "FSRCNN::nndct_relu_10":[[8,6]],
+    "FSRCNN::nndct_relu_12":[[8,6]],
+    "FSRCNN::nndct_relu_14":[[8,7]],
+    "FSRCNN::nndct_relu_16":[[8,7]],
+    "FSRCNN::nndct_relu_18":[[8,8]],
+    "FSRCNN::nndct_conv_transpose_2d_19":[[8,7]]
+  },
+  "input":
+  {
+
+  },
+  "fast_finetuned":false,
+  "bias_corrected":true,
+  "version":"3.5.0+60df3f1+torch1.13.1",
+  "graph_md5":"5d956bfc8f89309af077c50ebdfcd84f"
+}

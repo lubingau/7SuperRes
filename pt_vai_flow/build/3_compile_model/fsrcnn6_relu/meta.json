@@ -2,7 +2,7 @@
     "lib": "libvart-dpu-runner.so",
     "filename": "fsrcnn6_relu.xmodel",
     "kernel": [
-        "subgraph_quant_conv2d"
+        "subgraph_FSRCNN__FSRCNN_ConvTranspose2d_deconvolution__ret"
     ],
     "target": "DPUCZDX8G_ISA1_B4096"
 }
