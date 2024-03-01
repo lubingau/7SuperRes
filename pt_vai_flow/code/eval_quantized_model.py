@@ -154,8 +154,8 @@ def main():
             blr_images, gt_images = blr_data.to(device), gt_data.to(device)
             sr_images = q_model(blr_images)
             q_test_results.append(F.mse_loss(sr_images, gt_images).item())
-    q_test_results = np.array(test_results)
-    q_test_results = np.mean(test_results)
+    q_test_results = np.array(q_test_results)
+    q_test_results = np.mean(q_test_results)
     print("--------> Results on Test Dataset with Quantized Model:", PSNR(q_test_results))
     print("--------> Drop: ", PSNR(test_results) - PSNR(q_test_results))
     # ==========================================================================================
