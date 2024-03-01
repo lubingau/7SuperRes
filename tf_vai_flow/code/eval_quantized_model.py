@@ -1,16 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-# Copyright © 2023 Advanced Micro Devices, Inc. All rights reserved.
-# SPDX-License-Identifier: MIT
-
-# Author: Daniele Bagni, Xilinx Inc
-# date:  28 Apr. 2023
-
-# ==========================================================================================
-# import dependencies
-# ==========================================================================================
-
 
 from tensorflow import keras
 import argparse
@@ -18,8 +6,6 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 from tensorflow_model_optimization.quantization.keras import vitis_quantize
-
-from config import config as cfg
 
 
 # ==========================================================================================
@@ -31,7 +17,7 @@ def get_arguments():
     Returns:
       A list of parsed arguments.
     """
-    parser = argparse.ArgumentParser(description="Vitis AI TF2 Quantization of ResNet18 trained on CIFAR10")
+    parser = argparse.ArgumentParser(description="Vitis AI TF2 Evaluation")
 
     # model config
     parser.add_argument("--float_model_file", type=str,
@@ -39,6 +25,12 @@ def get_arguments():
     # quantization config
     parser.add_argument("--quantized_model_file", type=str,
                         help="quantized model file path name ")
+    # train images directory
+    parser.add_argument("--train_images_dir", type=str, default="../../supres_dataset/train",
+                        help="train images directory")
+    # test images directory
+    parser.add_argument("--test_images_dir", type=str, default="../../supres_dataset/test",
+                        help="test images directory")
     # number of images to use for evaluation
     parser.add_argument("--eval_num_img", type=int, default=None,
                         help="number of images to use for evaluation")
@@ -81,8 +73,8 @@ LR_DIR = os.path.join(SAVING_DIR, "blr")
 # ==========================================================================================
 print("\n[SR7 INFO] Loading Test Data ...")
 
-dir_test_input = cfg.dir_test_input
-dir_test_label = cfg.dir_test_label
+dir_test_input = os.path.join(args.test_images_dir, "blr")
+dir_test_label = os.path.join(args.test_images_dir, "gt")
 
 if args.eval_num_img is None:
     max_images = len(os.listdir(dir_test_input))
@@ -160,6 +152,8 @@ if args.save_images:
         plt.imsave(os.path.join(QUANT_DIR, "quant_" + str(i) + ".png"), Y_pred[i])
         plt.imsave(os.path.join(GT_DIR, "gt_" + str(i) + ".png"), Y_test[i])
         plt.imsave(os.path.join(LR_DIR, "blr_" + str(i) + ".png"), X_test[i])
+    
+    print("[SR7 INFO] Images saved in ", SAVING_DIR)
 
 # ==========================================================================================
         

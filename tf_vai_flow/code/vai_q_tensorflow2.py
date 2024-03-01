@@ -1,24 +1,10 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-# Copyright © 2023 Advanced Micro Devices, Inc. All rights reserved.
-# SPDX-License-Identifier: MIT
-
-# Author: Daniele Bagni, Xilinx Inc
-# date:  28 Apr. 2023
-
-# ==========================================================================================
-# import dependencies
-# ==========================================================================================
-
 
 from tensorflow import keras
 import argparse
 import os
 import numpy as np
 import matplotlib.pyplot as plt
-
-from config import config as cfg
 
 
 # ==========================================================================================
@@ -30,7 +16,7 @@ def get_arguments():
     Returns:
       A list of parsed arguments.
     """
-    parser = argparse.ArgumentParser(description="Vitis AI TF2 Quantization of ResNet18 trained on CIFAR10")
+    parser = argparse.ArgumentParser(description="Vitis AI TF2 Quantization")
 
     # model config
     parser.add_argument("--float_model_file", type=str,
@@ -41,6 +27,12 @@ def get_arguments():
     # calibration iterations
     parser.add_argument("--calib_iter", type=int, default=10,
                         help="number of calibration iterations")
+    # train images directory
+    parser.add_argument("--train_images_dir", type=str, default="../../supres_dataset/train",
+                        help="train images directory")
+    # test images directory
+    parser.add_argument("--test_images_dir", type=str, default="../../supres_dataset/test",
+                        help="test images directory")
     # number of images to use for calibration
     parser.add_argument("--calib_num_img", type=int, default=None,
                         help="number of images to use for calibration")
@@ -71,7 +63,7 @@ QUANT_H5_FILE = args.quantized_model_file
 # ==========================================================================================
 print("\n[SR7 INFO] Loading Train Data ...")
 
-dir_train_input = cfg.dir_train_input
+dir_train_input = os.path.join(args.train_images_dir, "blr")
 
 if args.calib_num_img is None:
     max_images = len(os.listdir(dir_train_input))
@@ -108,8 +100,7 @@ print("[SR7 INFO] Vitis AI Quantization...")
 
 from tensorflow_model_optimization.quantization.keras import vitis_quantize
 quantizer = vitis_quantize.VitisQuantizer(model)
-q_model = quantizer.quantize_model(calib_dataset=X_train,
-                                   calib_steps=args.calib_iter)
+q_model = quantizer.quantize_model(calib_dataset=X_train, calib_steps=args.calib_iter)
 
 q_model.save(QUANT_H5_FILE)
 print("[SR7 INFO] Saved Quantized Model in :", QUANT_H5_FILE)
@@ -119,4 +110,3 @@ print("[SR7 INFO] Quantization done!")
 # ==========================================================================================
 # END
 # ==========================================================================================
-
