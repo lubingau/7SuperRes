@@ -51,7 +51,7 @@ void runDPU(vart::Runner *runner, int8_t *inputBuffer, int8_t *outputBuffer, Gra
 {
     /*
     A method to execute the model on the DPU on the PL (FPGA).
-
+    
     Args:
         runner: The runner object to execute the model on the DPU.
         inputBuffer: The input buffer containing the images to be processed.
@@ -82,7 +82,7 @@ void runDPU(vart::Runner *runner, int8_t *inputBuffer, int8_t *outputBuffer, Gra
     int8_t *loc_inputBuffer = inputBuffer;
     int8_t *loc_outputBuffer = outputBuffer;
 
-    cout << "[SR7 INFO AI] Inside RUN CNN " << endl;
+    cout << "[SR7 INFO AI] Inside RUN DPU " << endl;
 
     for (unsigned int n = 0; n < num_images_x_thread; n += batchSize)  // this works correctly for either batchSize= 1 or 3
     {
@@ -112,7 +112,7 @@ void runDPU(vart::Runner *runner, int8_t *inputBuffer, int8_t *outputBuffer, Gra
 }
 
 
-void runCNN(const vector<Mat>& inputImages, vector<Mat>& outputImages, const string xmodel_path, int num_threads
+void runCNN(int8_t* inputBuffer, int8_t* outputBuffer, const string xmodel_path, int num_threads, int num_of_images
 #if DEBUG_RUNCNN
     , const string& input_folder, const string& output_folder
 #endif
@@ -130,7 +130,7 @@ void runCNN(const vector<Mat>& inputImages, vector<Mat>& outputImages, const str
         output_folder: The folder containing the output images.
     */
 
-    assert((num_threads <= 6) & (num_threads >= 1));
+    assert((num_threads <= 12) & (num_threads >= 1));
     
     /////////////////////////////////////////////////////////////////////////////////////////////
     // PREPARE DPU STUFF
@@ -139,10 +139,9 @@ void runCNN(const vector<Mat>& inputImages, vector<Mat>& outputImages, const str
     auto subgraph = get_dpu_subgraph(graph.get());
     CHECK_EQ(subgraph.size(), 1u)
         << "CNN should have one and only one dpu subgraph.";
-    LOG(INFO) << "[SR7 INFO AI] Create running for subgraph: " << subgraph[0]->get_name();
+    LOG(INFO) << "[SR7 INFO AI] Create running for subgraph: " << subgraph[0]->get_name() << endl;
     cout << "[SR7 INFO AI] Create running for subgraph: " << subgraph[0]->get_name() << endl;
     
-    int num_of_images = 0;
     int num_images_x_thread = 0;
     int num_images_first_thread = 0;
 
@@ -154,6 +153,12 @@ void runCNN(const vector<Mat>& inputImages, vector<Mat>& outputImages, const str
     auto runner3 = vart::Runner::create_runner(subgraph[0], "run");
     auto runner4 = vart::Runner::create_runner(subgraph[0], "run");
     auto runner5 = vart::Runner::create_runner(subgraph[0], "run");
+    auto runner6 = vart::Runner::create_runner(subgraph[0], "run");
+    auto runner7 = vart::Runner::create_runner(subgraph[0], "run");
+    auto runner8 = vart::Runner::create_runner(subgraph[0], "run");
+    auto runner9 = vart::Runner::create_runner(subgraph[0], "run");
+    auto runner10 = vart::Runner::create_runner(subgraph[0], "run");
+    auto runner11 = vart::Runner::create_runner(subgraph[0], "run");
 
     // get in/out tensors and dims
     auto inputTensors = runner->get_input_tensors();
@@ -227,7 +232,6 @@ void runCNN(const vector<Mat>& inputImages, vector<Mat>& outputImages, const str
     /////////////////////////////////////////////////////////////////////////////////////////////
     // MEMORY ALLOCATION
 
-    num_of_images = inputImages.size();
     cout << "[SR7 INFO AI] Number of images to read " << num_of_images << endl;
 
     // number of images per thread
@@ -240,82 +244,74 @@ void runCNN(const vector<Mat>& inputImages, vector<Mat>& outputImages, const str
     Mat image = cv::Mat(inHeight, inWidth, CV_8UC3);
     Mat debug = cv::Mat(outHeight, outWidth, CV_8UC3);
     
-    int8_t *inputBuffer = new int8_t[(num_of_images)*inSize];
-    int8_t *outputBuffer    = new int8_t[(num_of_images)*outSize];
+    // int8_t *inputBuffer = new int8_t[(num_of_images)*inSize];
+    // int8_t *outputBuffer    = new int8_t[(num_of_images)*outSize];
 
-    /////////////////////////////////////////////////////////////////////////////////////////////
-    // PREPROCESSING ALL IMAGES AT ONCE
-    cout << "[SR7 INFO AI] Start pre-processing" << endl;
-    auto pre_t1 = std::chrono::high_resolution_clock::now();
-    
-    for (unsigned int n = 0; n < num_of_images; n++)
-    {
-        image = inputImages[n];
+    // /////////////////////////////////////////////////////////////////////////////////////////////
+    // // PREPROCESSING ALL IMAGES AT ONCE
+    // cout << "[SR7 INFO AI] Start pre-processing" << endl;
+    // auto pre_t1 = std::chrono::high_resolution_clock::now();
 
-        for (int y = 0; y < inHeight; y++) {
-            for (int x = 0; x < inWidth; x++) {
-                for (int c = 0; c < 3; c++) {
-                float tmp_pix = ((float) image.at<Vec3b>(y,x)[c])/255;
-                tmp_pix = tmp_pix * input_scale;
-                inputBuffer[n*inSize + 3*(y*inWidth+x) + c  ] = (int8_t) tmp_pix; //BGR format
-                //inputBuffer[n*inSize + 3*(y*inWidth+x) + 2-c] = (int8_t) tmp_pix; //RGB format
-                }
-            }
-        }
-    #if DEBUG_RUNCNN
-        // Only for debug
-        Mat debug = cv::Mat(inHeight, inWidth, CV_8UC3);
-        for (int i = 0; i < inHeight; i++){
-            for (int j = 0; j < inWidth; j++){
-            int B_pix = inputBuffer[n*inSize + 3*(i*inWidth+j) + 0];
-            int G_pix = inputBuffer[n*inSize + 3*(i*inWidth+j) + 1];
-            int R_pix = inputBuffer[n*inSize + 3*(i*inWidth+j) + 2];
-            debug.at<Vec3b>(i, j) = Vec3b(B_pix, G_pix, R_pix);
-            }
-        }
-        string filename = input_folder + "debug_in_" + to_string(n) + ".png";
-        imwrite(filename, debug);
-        cout << "[SR7 INFO] Image " << n << " pre-processed" << endl;
-    #endif
-    }
-    cout << "[SR7 INFO AI] Images loaded in the buffer" << endl;
-
-    auto pre_t2 = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double, std::micro> prepr_time = pre_t2 - pre_t1 - avg_calibr_highres;
-    cout << "---------------------------------------------" << endl;
-    cout << "[SR7 INFO AI] Preprocess time: " << 1000.0*prepr_time.count() << "ms" << endl;
-    cout << "[SR7 INFO AI] Preprocess FPS:  " << num_of_images*1000000.0/prepr_time.count()  << endl;
-    cout << "---------------------------------------------" << endl;
+    // auto pre_t2 = std::chrono::high_resolution_clock::now();
+    // std::chrono::duration<double, std::micro> prepr_time = pre_t2 - pre_t1 - avg_calibr_highres;
+    // cout << "---------------------------------------------" << endl;
+    // cout << "[SR7 INFO AI] Preprocess time: " << 1000.0*prepr_time.count() << "ms" << endl;
+    // cout << "[SR7 INFO AI] Preprocess FPS:  " << num_of_images*1000000.0/prepr_time.count()  << endl;
+    // cout << "---------------------------------------------" << endl;
     
 
     // split images in chunks, each chunks for its own thead
     // avoid pointing to wrong memorycv::Mat> locations
-    int8_t *inputBuffer0, *inputBuffer1, *inputBuffer2, *inputBuffer3, *inputBuffer4, *inputBuffer5;
-    int8_t *outputBuffer0, *outputBuffer1, *outputBuffer2, *outputBuffer3, *outputBuffer4, *outputBuffer5;
+    int8_t *inputBuffer0, *inputBuffer1, *inputBuffer2, *inputBuffer3, *inputBuffer4, *inputBuffer5, *inputBuffer6, *inputBuffer7, *inputBuffer8, *inputBuffer9, *inputBuffer10, *inputBuffer11;
+    int8_t *outputBuffer0, *outputBuffer1, *outputBuffer2, *outputBuffer3, *outputBuffer4, *outputBuffer5, *outputBuffer6, *outputBuffer7, *outputBuffer8, *outputBuffer9, *outputBuffer10, *outputBuffer11;
 
     if (num_threads >= 1) {
-        inputBuffer0 = inputBuffer + inSize * 0 * num_images_first_thread;
-        outputBuffer0 = outputBuffer + outSize * 0 * num_images_first_thread;
+        inputBuffer0 = inputBuffer;
+        outputBuffer0 = outputBuffer;
     }
     if (num_threads >= 2) {
-        inputBuffer1 = inputBuffer + inSize * 1 * num_images_x_thread;
-        outputBuffer1 = outputBuffer + outSize * 1 * num_images_x_thread;
+        inputBuffer1 = inputBuffer + inSize * ( 0 * num_images_x_thread + num_images_first_thread);
+        outputBuffer1 = outputBuffer + outSize * ( 0 * num_images_x_thread + num_images_first_thread);
     }
     if (num_threads >= 3) {
-        inputBuffer2 = inputBuffer + inSize * 2 * num_images_x_thread;
-        outputBuffer2 = outputBuffer + outSize * 2 * num_images_x_thread;
+        inputBuffer2 = inputBuffer + inSize * ( 1 * num_images_x_thread + num_images_first_thread);
+        outputBuffer2 = outputBuffer + outSize * ( 1 * num_images_x_thread + num_images_first_thread);
     }
     if (num_threads >= 4) {
-        inputBuffer3 = inputBuffer + inSize * 3 * num_images_x_thread;
-        outputBuffer3 = outputBuffer + outSize * 3 * num_images_x_thread;
+        inputBuffer3 = inputBuffer + inSize * ( 2 * num_images_x_thread + num_images_first_thread);
+        outputBuffer3 = outputBuffer + outSize * ( 2 * num_images_x_thread + num_images_first_thread);
     }
     if (num_threads >= 5) {
-        inputBuffer4 = inputBuffer + inSize * 4 * num_images_x_thread;
-        outputBuffer4 = outputBuffer + outSize * 4 * num_images_x_thread;
+        inputBuffer4 = inputBuffer + inSize * ( 3 * num_images_x_thread + num_images_first_thread);
+        outputBuffer4 = outputBuffer + outSize * ( 3 * num_images_x_thread + num_images_first_thread);
     }
     if (num_threads >= 6) {
-        inputBuffer5 = inputBuffer + inSize * 5 * num_images_x_thread;
-        outputBuffer5 = outputBuffer + outSize * 5 * num_images_x_thread;
+        inputBuffer5 = inputBuffer + inSize * ( 4 * num_images_x_thread + num_images_first_thread);
+        outputBuffer5 = outputBuffer + outSize * ( 4 * num_images_x_thread + num_images_first_thread);
+    }
+    if (num_threads >= 7) {
+        inputBuffer6 = inputBuffer + inSize * ( 5 * num_images_x_thread + num_images_first_thread);
+        outputBuffer6 = outputBuffer + outSize * ( 5 * num_images_x_thread + num_images_first_thread);
+    }
+    if (num_threads >= 8) {
+        inputBuffer7 = inputBuffer + inSize * ( 6 * num_images_x_thread + num_images_first_thread);
+        outputBuffer7 = outputBuffer + outSize * ( 6 * num_images_x_thread + num_images_first_thread);
+    }
+    if (num_threads >= 9) {
+        inputBuffer8 = inputBuffer + inSize * ( 7 * num_images_x_thread + num_images_first_thread);
+        outputBuffer8 = outputBuffer + outSize * ( 7 * num_images_x_thread + num_images_first_thread);
+    }
+    if (num_threads >= 10) {
+        inputBuffer9 = inputBuffer + inSize * ( 8 * num_images_x_thread + num_images_first_thread);
+        outputBuffer9 = outputBuffer + outSize * ( 8 * num_images_x_thread + num_images_first_thread);
+    }
+    if (num_threads >= 11) {
+        inputBuffer10 = inputBuffer + inSize * ( 9 * num_images_x_thread + num_images_first_thread);
+        outputBuffer10 = outputBuffer + outSize * ( 9 * num_images_x_thread + num_images_first_thread);
+    }
+    if (num_threads >= 12) {
+        inputBuffer11 = inputBuffer + inSize * (10 * num_images_x_thread + num_images_first_thread);
+        outputBuffer11 = outputBuffer + outSize * (10 * num_images_x_thread + num_images_first_thread);
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////////
@@ -338,6 +334,18 @@ void runCNN(const vector<Mat>& inputImages, vector<Mat>& outputImages, const str
         workers[i] = thread(runDPU, runner4.get(), ref(inputBuffer4), ref(outputBuffer4), &shapes, num_images_x_thread);
         if (i == 5)
         workers[i] = thread(runDPU, runner5.get(), ref(inputBuffer5), ref(outputBuffer5), &shapes, num_images_x_thread);
+        if (i == 6)
+        workers[i] = thread(runDPU, runner6.get(), ref(inputBuffer6), ref(outputBuffer6), &shapes, num_images_x_thread);
+        if (i == 7)
+        workers[i] = thread(runDPU, runner7.get(), ref(inputBuffer7), ref(outputBuffer7), &shapes, num_images_x_thread);
+        if (i == 8)
+        workers[i] = thread(runDPU, runner8.get(), ref(inputBuffer8), ref(outputBuffer8), &shapes, num_images_x_thread);
+        if (i == 9)
+        workers[i] = thread(runDPU, runner9.get(), ref(inputBuffer9), ref(outputBuffer9), &shapes, num_images_x_thread);
+        if (i == 10)
+        workers[i] = thread(runDPU, runner10.get(), ref(inputBuffer10), ref(outputBuffer10), &shapes, num_images_x_thread);
+        if (i == 11)
+        workers[i] = thread(runDPU, runner11.get(), ref(inputBuffer11), ref(outputBuffer11), &shapes, num_images_x_thread);
     }
     // Release thread resources.
     for (auto &w : workers) {
@@ -349,7 +357,7 @@ void runCNN(const vector<Mat>& inputImages, vector<Mat>& outputImages, const str
     std::chrono::duration<double, std::micro> dpu_time = dpu_t2 - dpu_t1 - avg_calibr_highres;
     cout << "---------------------------------------------" << endl;
     cout << "[SR7 INFO AI] DPU total time: " << 1000.0*dpu_time.count() << "ms" << endl;
-    //cout << "[DPU avg Time ] " << (dpu_time.count()/num_of_images) << "us" << endl;
+    cout << "[SR7 INFO AI] DPU avg Time:   " << (dpu_time.count()/num_of_images) << "us" << endl;
     cout << "[SR7 INFO AI] DPU avg FPS:    " << num_of_images*1000000.0/dpu_time.count() << endl;
     cout << "---------------------------------------------" << endl;
 
@@ -357,58 +365,56 @@ void runCNN(const vector<Mat>& inputImages, vector<Mat>& outputImages, const str
 
     /////////////////////////////////////////////////////////////////////////////////////////////
     // READ OUTPUT BUFFER
-    cout << "[SR7 INFO AI] Start post-processing" << endl;
-    cout << "[SR7 INFO AI] Read output buffer" << endl;
+    // cout << "[SR7 INFO AI] Start post-processing" << endl;
+    // cout << "[SR7 INFO AI] Read output buffer" << endl;
 
-    vector<Mat> outputImages_temp;
+    // // Create a Mat to hold the super-resolved image
+    // Mat superResolvedImage(outHeight, outWidth, CV_8UC3);
+    // int B_pix, G_pix, R_pix;
+    // for (unsigned int n = 0; n < num_of_images; n++) {
+    //     // Iterate over rows and columns of the super-resolved image
+    //     for (int row = 0; row < outHeight; row++) {
+    //     for (int col = 0; col < outWidth; col++) {
+    //         B_pix = 2*outputBuffer[n*outSize + 3*(row*outWidth+col) + 0];
+    //         if (B_pix < 0) B_pix = 0; // Avoid negative values that transform into artifacts
+    //         G_pix = 2*outputBuffer[n*outSize + 3*(row*outWidth+col) + 1];
+    //         if (G_pix < 0) G_pix = 0;
+    //         R_pix = 2*outputBuffer[n*outSize + 3*(row*outWidth+col) + 2];
+    //         if (R_pix < 0) R_pix = 0;
+    //         superResolvedImage.at<cv::Vec3b>(row, col) = Vec3b(B_pix, G_pix, R_pix);
+    //     }
+    //     }
+    //     outputImages.push_back(superResolvedImage.clone());
+    // }
+    // cout << "[SR7 INFO AI] Post-processing done!" << endl; 
 
-    // Create a Mat to hold the super-resolved image
-    Mat superResolvedImage(outHeight, outWidth, CV_8UC3);
-    int B_pix, G_pix, R_pix;
-    for (unsigned int n = 0; n < num_of_images; n++) {
-        // Iterate over rows and columns of the super-resolved image
-        for (int row = 0; row < outHeight; row++) {
-        for (int col = 0; col < outWidth; col++) {
-            B_pix = 2*outputBuffer[n*outSize + 3*(row*outWidth+col) + 0];
-            if (B_pix < 0) B_pix = 0; // Avoid negative values that transform into artifacts
-            G_pix = 2*outputBuffer[n*outSize + 3*(row*outWidth+col) + 1];
-            if (G_pix < 0) G_pix = 0;
-            R_pix = 2*outputBuffer[n*outSize + 3*(row*outWidth+col) + 2];
-            if (R_pix < 0) R_pix = 0;
-            superResolvedImage.at<cv::Vec3b>(row, col) = Vec3b(B_pix, G_pix, R_pix);
-        }
-        }
-        outputImages.push_back(superResolvedImage.clone());
-    }
-    cout << "[SR7 INFO AI] Post-processing done!" << endl; 
-
-    total_time += (double) prepr_time.count();
+    // total_time += (double) prepr_time.count();
     total_time += (double) dpu_time.count();
     cout << "[SR7 INFO AI] TOTAL Computation Time (DPU+CPU):   " << 1000.0*total_time  << "ms" << endl;
-    cout << "[SR7 INFO AI] Average FPS of AI:                  " << num_of_images*1000000.0/total_time << endl;
+    cout << "[SR7 INFO AI] Average FPS of DPU:                  " << num_of_images*1000000.0/total_time << endl;
 
-    #if DEBUG_RUNCNN
-    // Only for debug
-    for (unsigned int n = 0; n < num_of_images; n++) {
-        debug = outputImages[n];
-        for (int i = 0; i < outHeight; i++){
-        for (int j = 0; j < outWidth; j++){
-            B_pix = debug.at<Vec3b>(i, j)[0];
-            G_pix = debug.at<Vec3b>(i, j)[1];
-            R_pix = debug.at<Vec3b>(i, j)[2];
-            debug.at<Vec3b>(i, j) = Vec3b(B_pix, G_pix, R_pix);
-        }
-        }
-        string filename = output_folder + "debug_out_" + to_string(n) + ".png";
-        imwrite(filename, debug);
-        cout << "[SR7 INFO AI] Image " << n << " super-resolved" << endl;
-    }
-    #endif
+    // #if DEBUG_RUNCNN
+    // // Only for debug
+    // for (unsigned int n = 0; n < num_of_images; n++) {
+    //     debug = outputImages[n];
+    //     for (int i = 0; i < outHeight; i++){
+    //     for (int j = 0; j < outWidth; j++){
+    //         B_pix = debug.at<Vec3b>(i, j)[0];
+    //         G_pix = debug.at<Vec3b>(i, j)[1];
+    //         R_pix = debug.at<Vec3b>(i, j)[2];
+    //         debug.at<Vec3b>(i, j) = Vec3b(B_pix, G_pix, R_pix);
+    //     }
+    //     }
+    //     string filename = output_folder + "debug_out_" + to_string(n) + ".png";
+    //     imwrite(filename, debug);
+    //     cout << "[SR7 INFO AI] Image " << n << " super-resolved" << endl;
+    // }
+    // #endif
 
     /////////////////////////////////////////////////////////////////////////////////////////////
     // FREE MEMORY
-    cout << "[SR7 INFO AI] Deleting inputBuffer memory" << endl;
-    delete[] inputBuffer;
-    cout << "[SR7 INFO AI] Deleting outputBuffer memory" << endl;
-    delete[] outputBuffer;
+    // cout << "[SR7 INFO AI] Deleting inputBuffer memory" << endl;
+    // delete[] inputBuffer;
+    // cout << "[SR7 INFO AI] Deleting outputBuffer memory" << endl;
+    // delete[] outputBuffer;
 }

@@ -1,14 +1,18 @@
 #include <iostream>
+#include <fstream>
 #include <chrono>
 #include "patcher.cpp"
 #include "rebuilder.cpp"
-#include "rebuilder_with_mask.cpp"
-#include "bilateral_filter.cpp"
-//#include "runCNN.cpp"
-#include "runCNN_test.cpp"
+// #include "rebuilder_with_mask.cpp"
+// #include "bilateral_filter.cpp"
+#include "runCNN.cpp"
+// #include "runCNN_test.cpp"
 
 #include "debug.h"
 
+using namespace std;
+using namespace cv;
+using namespace std::chrono;
 
 int main(int argc, char** argv) {
 
@@ -21,11 +25,11 @@ int main(int argc, char** argv) {
         argv: Input arguments
     */
 
-    auto start_global = std::chrono::high_resolution_clock::now();
+    auto start_global = high_resolution_clock::now();
 
     if (argc < 5) {
-        cout << "Usage: ./SuperRes7 <image_path> <patch_size> <stride> <path_xmodel> <output_folder>\n";
-        cout << "Usage with debug: ./SuperRes7 <image_path> <patch_size> <stride> <path_xmodel> <output_folder> <debug_folder>\n";
+        cout << "Usage: ./test_buffer <image_path> <patch_size> <stride> <path_xmodel> <output_folder>\n";
+        cout << "Usage with debug: ./test_buffer <image_path> <patch_size> <stride> <path_xmodel> <output_folder> <threads> <processes> <debug_folder>\n";
         return -1;
     }
     /////////////////////////////////////////////////////////////////////////////////////////////
@@ -34,9 +38,15 @@ int main(int argc, char** argv) {
     int patch_size = stoi(argv[2]);
     float stride = stof(argv[3]);
     int stride_pixels = patch_size * stride;
+    int overlap = patch_size - stride_pixels;
     string path_xmodel = argv[4];
     string output_folder = argv[5];
-    string debug_folder = argv[6];
+    int num_threads = stoi(argv[6]);
+    int num_processes = stoi(argv[7]);
+    string debug_folder = argv[8];
+
+    /////////////////////////////////////////////////////////////////////////////////////////////
+    // LOADING IMAGE
 
     cout << "\n###################################### START #################################################\n" << endl;
     cout << "[SR7 INFO] SuperRes7 started\n";
@@ -54,143 +64,252 @@ int main(int argc, char** argv) {
         cout << "[SR7 INFO] Image size: " << image.rows << "x" << image.cols << endl;
     }
 
-    auto end_load = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> duration_load = end_load - start_global;
+    auto end_load = high_resolution_clock::now();
+    duration<double> duration_load = end_load - start_global;
 
-    size_t IMG_HEIGHT = image.rows;
+    //////////////////////////////////////////////////////////////////////////
+    // BUFFERS INITIALIZATION
+    //////////////////////////////////////////////////////////////////////////
+
     size_t IMG_WIDTH = image.cols;
+    size_t IMG_HEIGHT = image.rows;
+
+    int n_patches_i = (IMG_WIDTH - 2*overlap)/(stride_pixels);
+    int n_patches_j = (IMG_HEIGHT - 2*overlap)/(stride_pixels);
+
+    int n_patches = n_patches_i * n_patches_j + n_patches_i + n_patches_j + 1;
+    int inSize = patch_size * patch_size * image.channels();
+    int outSize = 2*patch_size * 2*patch_size * image.channels(); // assuming the output size is 2 times the input size
+
+    cout << "[SR7 INFO] width: " << IMG_WIDTH << endl;
+    cout << "[SR7 INFO] height: " << IMG_HEIGHT << endl;
+    cout << "[SR7 INFO] n_patches_i (cols): " << n_patches_i << endl;
+    cout << "[SR7 INFO] n_patches_j (rows): " << n_patches_j << endl;
+    cout << "[SR7 INFO] n_patches: " << n_patches << endl;
+
+    int8_t *inputBuffer = new int8_t[n_patches*inSize];
+    int16_t *posBuffer = new int16_t[n_patches*2];
+
+    cout << "[SR7 INFO] Buffers initialized" << endl;
+
 
     /////////////////////////////////////////////////////////////////////////////////////////////
     // PATCHER
-    cout << "\n###################################### PATCHER ###############################################\n" << endl;
+    /////////////////////////////////////////////////////////////////////////////////////////////
+    cout << "\n-------- PATCHER --------\n" << endl;
 
-    vector<Mat> img_patch_vec;
-    vector<string> name_vec;
+    cout << "[SR7 INFO] Theorical number of patches: " << n_patches << endl;
+
 #if DEBUG_PATCHER
     string debug_patcher_folder = debug_folder + "patcher/";
-    patch_image(image, img_patch_vec, name_vec, patch_size, stride, debug_patcher_folder);
+    patch_image(image, inputBuffer, posBuffer, patch_size, stride, n_patches, debug_patcher_folder);
 #else
-    patch_image(image, img_patch_vec, name_vec, patch_size, stride);
+    patch_image(image, inputBuffer, posBuffer, patch_size, stride, n_patches);
 #endif
     image.release();
 
-    auto end_patcher = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> duration_patcher = end_patcher - end_load;
+    auto end_patcher = high_resolution_clock::now();
+    duration<double> duration_patcher = end_patcher - end_load;
 
     /////////////////////////////////////////////////////////////////////////////////////////////
-    // SUPER RESOLUTION AI
-    cout << "\n###################################### SUPER RESOLUTION AI ###################################\n" << endl;
-    cout << "[SR7 INFO AI] Starting super-resolution AI" << endl;
-
-    vector<Mat> doub_img_patch_vec;
-    vector<Mat> img_patch_vec_temp;
-    vector<Mat> doub_img_patch_vec_temp;
-    int threads = 6;
-
-    for (int n = 0; n < img_patch_vec.size(); n++){
-        Mat temp = img_patch_vec[n];
-        img_patch_vec_temp.push_back(temp);
-        if (((n==img_patch_vec.size()-1)or(n%3000-1==0)) and (n>1)){
-            cout << "\n[SR7 INFO AI] " << img_patch_vec_temp.size() << " patches into DPU\n" << endl;
-#if DEBUG_RUNCNN
-            string debug_runCNN_input_folder = debug_folder + "runCNN/input/";
-            string debug_runCNN_output_folder = debug_folder + "runCNN/output/";
-            runCNN(img_patch_vec_temp, doub_img_patch_vec_temp, path_xmodel, threads, debug_runCNN_input_folder, debug_runCNN_output_folder);
-#else
-            //runCNN(img_patch_vec_temp, doub_img_patch_vec_temp, path_xmodel, threads);
-            extrapolateImages(img_patch_vec_temp, doub_img_patch_vec_temp);
-#endif
-            for (int i = 0; i < doub_img_patch_vec_temp.size(); i++){
-                doub_img_patch_vec.push_back(doub_img_patch_vec_temp[i]);
-            }
-            img_patch_vec_temp.clear();
-            img_patch_vec_temp.shrink_to_fit();
-            doub_img_patch_vec_temp.clear();
-            doub_img_patch_vec_temp.shrink_to_fit();
-            cout << "DEBUG: doub_img_patch_vec " << doub_img_patch_vec.size() << " size after clear()" << endl;
-            cout << "DEBUG: img_patch_vec_temp " << img_patch_vec_temp.size() << " size after clear()" << endl;
-        }
-    }
-    img_patch_vec.clear();
-
-#if DEBUG_RUNCNN
-    // Only for debug
-    for (int n=0; n<doub_img_patch_vec.size(); n++){
-        Mat debug = doub_img_patch_vec[n];
-        for (int i = 0; i < 3; i++){
-            for (int j = 0; j < 3; j++){
-                int B_pix = debug.at<Vec3b>(i, j)[0];
-                int G_pix = debug.at<Vec3b>(i, j)[1];
-                int R_pix = debug.at<Vec3b>(i, j)[2];
-                //cout << "B: " << B_pix << " G: " << G_pix << " R: " << R_pix << endl;
-            }
-        }
-        string filename = debug_runCNN_output_folder + "debug_out_" + to_string(n) + ".png";
-        imwrite(filename, debug);
-        cout << "[SR7 INFO] Image " << n << " super-resolved" << endl;
-    }
-#endif
-    cout << "[SR7 INFO] All patches super-resolved" << endl;
-
-    auto end_IA = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> duration_IA = end_IA - end_patcher;
-
+    // MULTI-PROCESSING
     /////////////////////////////////////////////////////////////////////////////////////////////
-    // REBUILDER
-    cout << "\n###################################### REBUILDER #############################################\n" << endl;
-
-    Mat reconstructed_image(2 * IMG_HEIGHT, 2 * IMG_WIDTH, CV_16UC3);
-#if DEBUG_REBUILDER
-    string debug_rebuilder_folder = debug_folder + "rebuilder/";
-    //rebuild_image_with_mask(doub_img_patch_vec, name_vec, reconstructed_image, debug_rebuilder_folder);
-    rebuild_image(doub_img_patch_vec, name_vec, reconstructed_image, 2*patch_size, stride, debug_rebuilder_folder);
-#else
-    // rebuild_image_with_mask(doub_img_patch_vec, name_vec, reconstructed_image);
-    rebuild_image(doub_img_patch_vec, name_vec, reconstructed_image, 2*patch_size, stride);
-#endif
-    reconstructed_image.convertTo(reconstructed_image, CV_8UC3);
-    doub_img_patch_vec.clear();
-    name_vec.clear();
-
-    auto end_rebuilder = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> duration_rebuilder = end_rebuilder - end_IA;
-
-    /////////////////////////////////////////////////////////////////////////////////////////////
-    // FILTER IMAGE
-    // cout << "\n###################################### FILTERING #############################################\n" << endl;
-
-    // Mat filtered_image(2 * IMG_HEIGHT, 2 * IMG_WIDTH, CV_8UC3);
-    // bilateral_filter(reconstructed_image, filtered_image);
-    // reconstructed_image.release();
-
-    auto end_filter = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> duration_filter = end_filter - end_rebuilder;
-
-    /////////////////////////////////////////////////////////////////////////////////////////////
-    // SAVE IMAGE
-    cout << "\n###################################### SAVING IMAGE ##########################################\n" << endl;
-
-    imwrite(output_folder + "reconstructed_image.png", reconstructed_image);
-    reconstructed_image.release();
+    cout << "\n-------- CNN --------\n" << endl;
     
-    cout << "[SR7 INFO] Images saved in " << output_folder << endl;
+    int n_patches_x_process = n_patches / num_processes;
+    int n_patches_first_process = n_patches_x_process + n_patches % num_processes;
+    cout << "[SR7 INFO] n_patches: " << n_patches << endl;
+    cout << "[SR7 INFO] n_patches_first_process: " << n_patches_first_process << endl;
+    cout << "[SR7 INFO] n_patches_x_process: " << n_patches_x_process << endl;
 
-    auto end_save = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> duration_save = end_save - end_filter;
+    int8_t *inputBuffer0, *inputBuffer1, *inputBuffer2, *inputBuffer3, *inputBuffer4, *inputBuffer5, *inputBuffer6, *inputBuffer7;
+    int16_t *posBuffer0, *posBuffer1, *posBuffer2, *posBuffer3, *posBuffer4, *posBuffer5, *posBuffer6, *posBuffer7;
+    int8_t *outputBuffer0 = new int8_t[outSize * n_patches_first_process];
+    int8_t *outputBuffer1 = new int8_t[outSize * n_patches_x_process];
+    int8_t *outputBuffer2 = new int8_t[outSize * n_patches_x_process];
+    int8_t *outputBuffer3 = new int8_t[outSize * n_patches_x_process];
+    int8_t *outputBuffer4 = new int8_t[outSize * n_patches_x_process];
+    int8_t *outputBuffer5 = new int8_t[outSize * n_patches_x_process];
+    int8_t *outputBuffer6 = new int8_t[outSize * n_patches_x_process];
+    int8_t *outputBuffer7 = new int8_t[outSize * n_patches_x_process];
+
+    if (num_processes >= 1){
+        inputBuffer0 = inputBuffer;
+        posBuffer0 = posBuffer;
+    }
+    if (num_processes >= 2){
+        inputBuffer1 = inputBuffer + n_patches_first_process*inSize;
+        posBuffer1 = posBuffer + n_patches_first_process*2;
+    }
+    if (num_processes >= 3){
+        inputBuffer2 = inputBuffer + (n_patches_first_process + n_patches_x_process)*inSize;
+        posBuffer2 = posBuffer + (n_patches_first_process + n_patches_x_process)*2;
+    }
+    if (num_processes >= 4){
+        inputBuffer3 = inputBuffer + (n_patches_first_process + 2*n_patches_x_process)*inSize;
+        posBuffer3 = posBuffer + (n_patches_first_process + 2*n_patches_x_process)*2;
+    }
+    if (num_processes >= 5){
+        inputBuffer4 = inputBuffer + (n_patches_first_process + 3*n_patches_x_process)*inSize;
+        posBuffer4 = posBuffer + (n_patches_first_process + 3*n_patches_x_process)*2;
+    }
+    if (num_processes >= 6){
+        inputBuffer5 = inputBuffer + (n_patches_first_process + 4*n_patches_x_process)*inSize;
+        posBuffer5 = posBuffer + (n_patches_first_process + 4*n_patches_x_process)*2;
+    }
+    if (num_processes >= 7){
+        inputBuffer6 = inputBuffer + (n_patches_first_process + 5*n_patches_x_process)*inSize;
+        posBuffer6 = posBuffer + (n_patches_first_process + 5*n_patches_x_process)*2;
+    }
+    if (num_processes >= 8){
+        inputBuffer7 = inputBuffer + (n_patches_first_process + 6*n_patches_x_process)*inSize;
+        posBuffer7 = posBuffer + (n_patches_first_process + 6*n_patches_x_process)*2;
+    }
+
+    
+    /////////////////////////////////////////////////////////////////////////////////////////////
+    // CNN + REBUILDER
+    /////////////////////////////////////////////////////////////////////////////////////////////
+    cout << "\n-------- REBUILDER --------\n" << endl;
+
+    Mat reconstructed_image = Mat::zeros(2*IMG_HEIGHT, 2*IMG_WIDTH, CV_8UC3);
+#if DEBUG_REBUILDER  
+    string debug_rebuilder_folder = debug_folder + "rebuilder/";
+    rebuild_image(outputBuffer, posBuffer, reconstructed_image, 2*patch_size, stride, n_patches, debug_rebuilder_folder);
+#else
+    auto duration_runCNN = duration<double>::zero();
+    auto duration_rebuilder = duration<double>::zero();
+
+    if (num_processes >= 1){
+        auto start_runCNN = high_resolution_clock::now();
+        runCNN(inputBuffer0, outputBuffer0, path_xmodel, num_threads, n_patches_first_process);
+        duration_runCNN += high_resolution_clock::now() - start_runCNN;
+
+        auto start_rebuild = high_resolution_clock::now();
+        rebuild_image(outputBuffer0, posBuffer0, reconstructed_image, 2*patch_size, stride, n_patches_first_process);
+        duration_rebuilder += high_resolution_clock::now() - start_rebuild;
+
+        delete[] outputBuffer0;
+    }
+    if (num_processes >= 2){
+        auto start_runCNN = high_resolution_clock::now();
+        runCNN(inputBuffer1, outputBuffer1, path_xmodel, num_threads, n_patches_x_process);
+        duration_runCNN += high_resolution_clock::now() - start_runCNN;
+
+        auto start_rebuild = high_resolution_clock::now();
+        rebuild_image(outputBuffer1, posBuffer1, reconstructed_image, 2*patch_size, stride, n_patches_x_process);
+        duration_rebuilder += high_resolution_clock::now() - start_rebuild;
+
+        delete[] outputBuffer1;
+    }
+    if (num_processes >= 3){
+        auto start_runCNN = high_resolution_clock::now();
+        runCNN(inputBuffer2, outputBuffer2, path_xmodel, num_threads, n_patches_x_process);
+        duration_runCNN += high_resolution_clock::now() - start_runCNN;
+
+        auto start_rebuild = high_resolution_clock::now();
+        rebuild_image(outputBuffer2, posBuffer2, reconstructed_image, 2*patch_size, stride, n_patches_x_process);
+        duration_rebuilder += high_resolution_clock::now() - start_rebuild;
+
+        delete[] outputBuffer2;
+    }
+    if (num_processes >= 4){
+        auto start_runCNN = high_resolution_clock::now();
+        runCNN(inputBuffer3, outputBuffer3, path_xmodel, num_threads, n_patches_x_process);
+        duration_runCNN += high_resolution_clock::now() - start_runCNN;
+
+        auto start_rebuild = high_resolution_clock::now();
+        rebuild_image(outputBuffer3, posBuffer3, reconstructed_image, 2*patch_size, stride, n_patches_x_process);
+        duration_rebuilder += high_resolution_clock::now() - start_rebuild;
+
+        delete[] outputBuffer3;
+    }
+    if (num_processes >= 5){
+        auto start_runCNN = high_resolution_clock::now();
+        runCNN(inputBuffer4, outputBuffer4, path_xmodel, num_threads, n_patches_x_process);
+        duration_runCNN += high_resolution_clock::now() - start_runCNN;
+
+        auto start_rebuild = high_resolution_clock::now();
+        rebuild_image(outputBuffer4, posBuffer4, reconstructed_image, 2*patch_size, stride, n_patches_x_process);
+        duration_rebuilder += high_resolution_clock::now() - start_rebuild;
+
+        delete[] outputBuffer4;
+    }
+    if (num_processes >= 6){
+        auto start_runCNN = high_resolution_clock::now();
+        runCNN(inputBuffer5, outputBuffer5, path_xmodel, num_threads, n_patches_x_process);
+        duration_runCNN += high_resolution_clock::now() - start_runCNN;
+
+        auto start_rebuild = high_resolution_clock::now();
+        rebuild_image(outputBuffer5, posBuffer5, reconstructed_image, 2*patch_size, stride, n_patches_x_process);
+        duration_rebuilder += high_resolution_clock::now() - start_rebuild;
+
+        delete[] outputBuffer5;
+    }
+    if (num_processes >= 7){
+        auto start_runCNN = high_resolution_clock::now();
+        runCNN(inputBuffer6, outputBuffer6, path_xmodel, num_threads, n_patches_x_process);
+        duration_runCNN += high_resolution_clock::now() - start_runCNN;
+
+        auto start_rebuild = high_resolution_clock::now();
+        rebuild_image(outputBuffer6, posBuffer6, reconstructed_image, 2*patch_size, stride, n_patches_x_process);
+        duration_rebuilder += high_resolution_clock::now() - start_rebuild;
+
+        delete[] outputBuffer6;
+    }
+    if (num_processes >= 8){
+        auto start_runCNN = high_resolution_clock::now();
+        runCNN(inputBuffer7, outputBuffer7, path_xmodel, num_threads, n_patches_x_process);
+        duration_runCNN += high_resolution_clock::now() - start_runCNN;
+
+        auto start_rebuild = high_resolution_clock::now();
+        rebuild_image(outputBuffer7, posBuffer7, reconstructed_image, 2*patch_size, stride, n_patches_x_process);
+        duration_rebuilder += high_resolution_clock::now() - start_rebuild;
+
+        delete[] outputBuffer7;
+    }
+#endif
+
+    delete[] inputBuffer;
+    delete[] posBuffer;
 
     /////////////////////////////////////////////////////////////////////////////////////////////
     // EXECUTION TIMES
     cout << "\n###################################### EXECUTION TIMES #######################################\n" << endl;
 
-    auto end_global = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> duration_global = end_global - start_global;
 
     //Execution time
-    std::cout << "[SR7 INFO] EXECUTION TIMES:" << std::endl;
-    std::cout << " __________________________________________________________________________________________________" << std::endl;
-    std::cout << "|    Load      |    Patcher   |     AI    |   Rebuilder  |     Filter    |     Save    |   Total   |" << std::endl;
-    std::cout << "|     " << std::fixed << std::setprecision(3) <<  duration_load.count() << "s   |    "<<  duration_patcher.count() << "s    |   " << duration_IA.count() << "s  |     " << duration_rebuilder.count() << "s   |     " << duration_filter.count() << "s    |    " <<  duration_save.count() << "s   |   " << duration_global.count() << "s  |" << std::endl;
-    std::cout << " ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾" << std::endl;
+    cout << "[SR7 INFO] EXECUTION TIMES:" << endl;
+    cout << " ___________________________________________________________" << endl;
+    cout << "|    Load      |    Patcher   |     CNN     |    Rebuilder   |" << endl;
+    cout << "|     " << fixed << setprecision(3) <<  duration_load.count() << "s   |    "<<  duration_patcher.count() << "s    |    " << duration_runCNN.count() << "s   |   " << duration_rebuilder.count() << "s    |" << endl;
+    cout << " ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾" << endl;
+    
+    /////////////////////////////////////////////////////////////////////////////////////////////
+    // SAVE IMAGE
+    cout << "\n###################################### SAVING IMAGE ##########################################\n" << endl;
+
+    auto start_save = high_resolution_clock::now();
+    imwrite(output_folder + "reconstructed_image.png", reconstructed_image);
+    reconstructed_image.release();
+    
+    cout << "[SR7 INFO] Images saved in " << output_folder << endl;
+
+    duration<double> duration_save = high_resolution_clock::now() - start_save;
+    duration<double> duration_global = high_resolution_clock::now() - start_global;
+
+    cout << "\n[SR7 INFO] Writing time: " << duration_save.count() << "s" << endl;
+    cout << "[SR7 INFO] Total execution time: " << duration_global.count() << "s" << endl;
+
+    ofstream time_file;
+    time_file.open("execution_times.txt");
+    time_file << "Load " << duration_load.count() << endl;
+    time_file << "Patcher " << duration_patcher.count() << endl;
+    time_file << "RunCNN " << duration_runCNN.count() << endl;
+    time_file << "Rebuilder " << duration_rebuilder.count() << endl;
+    time_file << "Save " << duration_save.count() << endl;
+    time_file << "Total " << duration_global.count() << endl;
+    time_file.close();
 
     cout << "\n###################################### END ###################################################\n" << endl;
 

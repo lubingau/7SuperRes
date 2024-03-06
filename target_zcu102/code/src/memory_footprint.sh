@@ -2,9 +2,10 @@
 
 init_time=$(date +%s.%N)
 interval=0.2 # interval between measurements in seconds
-max_time=180.0 # maximum time for measuring memory usage in seconds
+max_time=400.0 # maximum time for measuring memory usage in seconds
 
 rm -f memory_usage.csv
+rm -f execution_times.txt
 echo "Time,Memory Usage (MB)" >> memory_usage.csv
 echo "[SR7 INFO MEMORY] Start measuring memory usage"
 
