@@ -489,6 +489,6 @@
 
 - [**MIT**](https://opensource.org/license/mit/): MIT license allows users to do almost anything they want with the software, as long as they include the original copyright notice and disclaimer.
 
-- [**Python Imaging Library**](https://github.com/python-pillow/Pillow/blob/ceb0c575e8c61a2d2b164f7f3e06d867804e304e/LICENSE)
+- [**Python Imaging Library**](https://github.com/python-pillow/Pillow/blob/ceb0c575e8c61a2d2b164f7f3e06d867804e304e/LICENSE): Python Imaging Library license allows users to obtain, use, copy, modify, and distribute the software and its associated documentation under certain conditions.
 
 - [**Python Software Foundation License**](https://www.python.org/download/releases/3.4.0/license/): PSF is a permissive open-source license that allows users to freely use, modify, and distribute Python, both for commercial and non-commercial purposes, without many of the restrictions found in copyleft licenses like the GNU General Public License (GPL).
