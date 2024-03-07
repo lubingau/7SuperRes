@@ -2,7 +2,7 @@
 
 ![architecture](./architecture_SuperRes7.png)
 
-# IA training
+# Super Resolution Dataset
 
 <details>
 <summary><span style="font-size: 20px; font-weight: bold">create_dataset.py</span></summary>
@@ -14,6 +14,7 @@
   - multiprocessing
   - os
 </details>
+
 
 <details>
 <summary>The 2-Clause BSD License</summary>
@@ -34,6 +35,8 @@
 </details>
 </div>
 </details>
+
+# Super Resolution Training 
 
 <details>
 <summary><span style="font-size: 20px; font-weight: bold">FSRCNN_training.py</span></summary>
@@ -78,14 +81,70 @@
   - tqdm
   - livelossplot
 </details>
-// voir training
 </div>
 </details>
 
-# Target
+<details>
+<summary><span style="font-size: 20px; font-weight: bold">sr_model.py</span></summary>
+<div style="margin-left: 20px;">
+<details>
+<summary>Apache 2.0 License</summary>
+      
+  - TensorFlow
+</details>
+</details>
 
 <details>
-<summary><span style="font-size: 20px; font-weight: bold">build_app.sh</span></summary>
+<summary><span style="font-size: 20px; font-weight: bold">custom_metrics.py</span></summary>
+<div style="margin-left: 20px;">
+<details>
+<summary>Apache 2.0 License</summary>
+      
+  - TensorFlow
+</details>
+</details>
+
+# Segmentation Training 
+
+<details>
+<summary><span style="font-size: 20px; font-weight: bold">model.py</span></summary>
+<div style="margin-left: 20px;">
+
+<details>
+<summary>The 3-Clause BSD License</summary>
+    
+  - PyTorch
+</details>
+</details>
+
+<details>
+<summary><span style="font-size: 20px; font-weight: bold">FCN8_train.py</span></summary>
+<div style="margin-left: 20px;">
+
+<details>
+<summary>The 3-Clause BSD License</summary>
+    
+  - PyTorch
+</details>
+</details>
+
+<details>
+<summary><span style="font-size: 20px; font-weight: bold">data_loader.py</span></summary>
+<div style="margin-left: 20px;">
+
+<details>
+<summary>The 3-Clause BSD License</summary>
+    
+  - PyTorch
+</details>
+</details>
+
+
+
+# Target ZCU-102
+
+<details>
+<summary><span style="font-size: 20px; font-weight: bold">run_app.sh</span></summary>
 <div style="margin-left: 20px;">
 <details>
 <summary>MIT</summary>
@@ -183,6 +242,28 @@
 </details>
 
 <details>
+<summary><span style="font-size: 20px; font-weight: bold">mask2mat.cpp</span></summary>
+<div style="margin-left: 20px;">
+<details>
+<summary>The 2-Clause BSD License</summary>
+
+  - OpenCV
+</details>
+
+<details>
+<summary>GPL License (GNU General Public License)</summary>
+    
+  - iostream
+  - string
+  - vector
+  - dirent.h
+  - sys/stat.h
+  - cmath
+</details>
+</div>
+</details>
+
+<details>
 <summary><span style="font-size: 20px; font-weight: bold">common.cpp</span></summary>
 <div style="margin-left: 20px;">
 <details>
@@ -224,7 +305,7 @@
 </div>
 </details>
 
-# Vitis AI
+# Vitis AI TensorFlow
 
 <details>
 <summary><span style="font-size: 20px; font-weight: bold">setup_docker_env.sh</span></summary>
@@ -248,26 +329,6 @@
   - libgfortran4
 </details>
 //vai_quantizer
-</div>
-</details>
-
-
-<details>
-<summary><span style="font-size: 20px; font-weight: bold">__init__.py</span></summary>
-<div style="margin-left: 20px;">
-<details>
-
-</div>
-</details>
-
-<details>
-<summary><span style="font-size: 20px; font-weight: bold">config.py</span></summary>
-<div style="margin-left: 20px;">
-<details>
-<summary>MIT</summary>
-      
-  - OpenCV
-</details>
 </div>
 </details>
 
@@ -345,6 +406,73 @@
 </div>
 </details>
 
+# Vitis AI PyTorch
+
+<details>
+<summary><span style="font-size: 20px; font-weight: bold">run_model.sh</span></summary>
+<div style="margin-left: 20px;">
+<details>
+<summary>MIT</summary>
+</details>
+</details>
+
+<details>
+<summary><span style="font-size: 20px; font-weight: bold">vai_q_pytorch.py</span></summary>
+<div style="margin-left: 20px;">
+<details>
+<summary>MIT</summary>
+      
+  - OpenCV
+</details>
+
+<details>
+<summary>Python Software Foundation License</summary>
+      
+  - arpgarse
+  - os
+</details>
+
+<details>
+<summary>The 3-Clause BSD License</summary>
+    
+  - PyTorch
+  - NumPy
+</details>
+</details>
+
+<details>
+<summary><span style="font-size: 20px; font-weight: bold">data_loaders.py</span></summary>
+<div style="margin-left: 20px;">
+<details>
+<summary>Python Imaging Library</summary>
+</details>
+
+<details>
+<summary>Python Software Foundation License</summary>
+      
+  - os
+</details>
+
+<details>
+<summary>The 3-Clause BSD License</summary>
+    
+  - PyTorch
+</details>
+</details>
+
+
+<details>
+<summary><span style="font-size: 20px; font-weight: bold">models.py</span></summary>
+<div style="margin-left: 20px;">
+<details>
+<summary>The 3-Clause BSD License</summary>
+    
+  - PyTorch
+</details>
+</details>
+
+
+
 # Licenses details
 
 - [**Apache 2.0 License**](https://www.apache.org/licenses/LICENSE-2.0): The Apache 2.0 License is permissive. It allows you to use, modify, and distribute the licensed software, including creating derivative works, without requiring those derivative works to be licensed under the same terms.
@@ -360,5 +488,7 @@
 - [**Matplotlib License**](https://github.com/matplotlib/matplotlib/blob/main/LICENSE/LICENSE): The Matplotlib License is a permissive open-source license that allows for the free use, modification, and distribution of the library, including for commercial purposes, with certain conditions.
 
 - [**MIT**](https://opensource.org/license/mit/): MIT license allows users to do almost anything they want with the software, as long as they include the original copyright notice and disclaimer.
+
+- [**Python Imaging Library**](https://github.com/python-pillow/Pillow/blob/ceb0c575e8c61a2d2b164f7f3e06d867804e304e/LICENSE)
 
 - [**Python Software Foundation License**](https://www.python.org/download/releases/3.4.0/license/): PSF is a permissive open-source license that allows users to freely use, modify, and distribute Python, both for commercial and non-commercial purposes, without many of the restrictions found in copyleft licenses like the GNU General Public License (GPL).
