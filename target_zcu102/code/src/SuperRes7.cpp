@@ -27,9 +27,9 @@ int main(int argc, char** argv) {
 
     auto start_global = high_resolution_clock::now();
 
-    if (argc < 5) {
-        cout << "Usage: ./test_buffer <image_path> <patch_size> <stride> <path_xmodel> <output_folder>\n";
-        cout << "Usage with debug: ./test_buffer <image_path> <patch_size> <stride> <path_xmodel> <output_folder> <threads> <processes> <debug_folder>\n";
+    if (argc < 8) {
+        cout << "Usage: ./SuperRes7 <image_path> <patch_size> <stride> <path_xmodel_supres> <output_folder> <threads> <processes> <debug_folder>" << endl;
+        cout << "WARNING: <debug_folder> is optional" << endl;
         return -1;
     }
     /////////////////////////////////////////////////////////////////////////////////////////////
@@ -39,7 +39,7 @@ int main(int argc, char** argv) {
     float stride = stof(argv[3]);
     int stride_pixels = patch_size * stride;
     int overlap = patch_size - stride_pixels;
-    string path_xmodel = argv[4];
+    string path_xmodel_supres = argv[4];
     string output_folder = argv[5];
     int num_threads = stoi(argv[6]);
     int num_processes = stoi(argv[7]);
@@ -90,15 +90,13 @@ int main(int argc, char** argv) {
     int8_t *inputBuffer = new int8_t[n_patches*inSize];
     int16_t *posBuffer = new int16_t[n_patches*2];
 
-    cout << "[SR7 INFO] Buffers initialized" << endl;
-
 
     /////////////////////////////////////////////////////////////////////////////////////////////
     // PATCHER
     /////////////////////////////////////////////////////////////////////////////////////////////
     cout << "\n-------- PATCHER --------\n" << endl;
 
-    cout << "[SR7 INFO] Theorical number of patches: " << n_patches << endl;
+    cout << "[SR7 INFO] Total number of patches: " << n_patches << endl;
 
 #if DEBUG_PATCHER
     string debug_patcher_folder = debug_folder + "patcher/";
@@ -114,7 +112,7 @@ int main(int argc, char** argv) {
     /////////////////////////////////////////////////////////////////////////////////////////////
     // MULTI-PROCESSING
     /////////////////////////////////////////////////////////////////////////////////////////////
-    cout << "\n-------- CNN --------\n" << endl;
+    cout << "\n-------- MULTI-PROCESSING --------\n" << endl;
     
     int n_patches_x_process = n_patches / num_processes;
     int n_patches_first_process = n_patches_x_process + n_patches % num_processes;
@@ -132,6 +130,7 @@ int main(int argc, char** argv) {
     int8_t *outputBuffer5 = new int8_t[outSize * n_patches_x_process];
     int8_t *outputBuffer6 = new int8_t[outSize * n_patches_x_process];
     int8_t *outputBuffer7 = new int8_t[outSize * n_patches_x_process];
+
 
     if (num_processes >= 1){
         inputBuffer0 = inputBuffer;
@@ -170,7 +169,6 @@ int main(int argc, char** argv) {
     /////////////////////////////////////////////////////////////////////////////////////////////
     // CNN + REBUILDER
     /////////////////////////////////////////////////////////////////////////////////////////////
-    cout << "\n-------- REBUILDER --------\n" << endl;
 
     Mat reconstructed_image = Mat::zeros(2*IMG_HEIGHT, 2*IMG_WIDTH, CV_8UC3);
 #if DEBUG_REBUILDER  
@@ -182,7 +180,7 @@ int main(int argc, char** argv) {
 
     if (num_processes >= 1){
         auto start_runCNN = high_resolution_clock::now();
-        runCNN(inputBuffer0, outputBuffer0, path_xmodel, num_threads, n_patches_first_process);
+        runCNN(inputBuffer0, outputBuffer0, path_xmodel_supres, num_threads, n_patches_first_process);
         duration_runCNN += high_resolution_clock::now() - start_runCNN;
 
         auto start_rebuild = high_resolution_clock::now();
@@ -193,7 +191,7 @@ int main(int argc, char** argv) {
     }
     if (num_processes >= 2){
         auto start_runCNN = high_resolution_clock::now();
-        runCNN(inputBuffer1, outputBuffer1, path_xmodel, num_threads, n_patches_x_process);
+        runCNN(inputBuffer1, outputBuffer1, path_xmodel_supres, num_threads, n_patches_x_process);
         duration_runCNN += high_resolution_clock::now() - start_runCNN;
 
         auto start_rebuild = high_resolution_clock::now();
@@ -204,7 +202,7 @@ int main(int argc, char** argv) {
     }
     if (num_processes >= 3){
         auto start_runCNN = high_resolution_clock::now();
-        runCNN(inputBuffer2, outputBuffer2, path_xmodel, num_threads, n_patches_x_process);
+        runCNN(inputBuffer2, outputBuffer2, path_xmodel_supres, num_threads, n_patches_x_process);
         duration_runCNN += high_resolution_clock::now() - start_runCNN;
 
         auto start_rebuild = high_resolution_clock::now();
@@ -215,7 +213,7 @@ int main(int argc, char** argv) {
     }
     if (num_processes >= 4){
         auto start_runCNN = high_resolution_clock::now();
-        runCNN(inputBuffer3, outputBuffer3, path_xmodel, num_threads, n_patches_x_process);
+        runCNN(inputBuffer3, outputBuffer3, path_xmodel_supres, num_threads, n_patches_x_process);
         duration_runCNN += high_resolution_clock::now() - start_runCNN;
 
         auto start_rebuild = high_resolution_clock::now();
@@ -226,7 +224,7 @@ int main(int argc, char** argv) {
     }
     if (num_processes >= 5){
         auto start_runCNN = high_resolution_clock::now();
-        runCNN(inputBuffer4, outputBuffer4, path_xmodel, num_threads, n_patches_x_process);
+        runCNN(inputBuffer4, outputBuffer4, path_xmodel_supres, num_threads, n_patches_x_process);
         duration_runCNN += high_resolution_clock::now() - start_runCNN;
 
         auto start_rebuild = high_resolution_clock::now();
@@ -237,7 +235,7 @@ int main(int argc, char** argv) {
     }
     if (num_processes >= 6){
         auto start_runCNN = high_resolution_clock::now();
-        runCNN(inputBuffer5, outputBuffer5, path_xmodel, num_threads, n_patches_x_process);
+        runCNN(inputBuffer5, outputBuffer5, path_xmodel_supres, num_threads, n_patches_x_process);
         duration_runCNN += high_resolution_clock::now() - start_runCNN;
 
         auto start_rebuild = high_resolution_clock::now();
@@ -248,7 +246,7 @@ int main(int argc, char** argv) {
     }
     if (num_processes >= 7){
         auto start_runCNN = high_resolution_clock::now();
-        runCNN(inputBuffer6, outputBuffer6, path_xmodel, num_threads, n_patches_x_process);
+        runCNN(inputBuffer6, outputBuffer6, path_xmodel_supres, num_threads, n_patches_x_process);
         duration_runCNN += high_resolution_clock::now() - start_runCNN;
 
         auto start_rebuild = high_resolution_clock::now();
@@ -259,7 +257,7 @@ int main(int argc, char** argv) {
     }
     if (num_processes >= 8){
         auto start_runCNN = high_resolution_clock::now();
-        runCNN(inputBuffer7, outputBuffer7, path_xmodel, num_threads, n_patches_x_process);
+        runCNN(inputBuffer7, outputBuffer7, path_xmodel_supres, num_threads, n_patches_x_process);
         duration_runCNN += high_resolution_clock::now() - start_runCNN;
 
         auto start_rebuild = high_resolution_clock::now();
@@ -303,13 +301,11 @@ int main(int argc, char** argv) {
 
     ofstream time_file;
     time_file.open("execution_times.txt");
-    time_file << "Load " << duration_load.count() << endl;
-    time_file << "Patcher " << duration_patcher.count() << endl;
-    time_file << "RunCNN " << duration_runCNN.count() << endl;
-    time_file << "Rebuilder " << duration_rebuilder.count() << endl;
-    time_file << "Save " << duration_save.count() << endl;
-    time_file << "Total " << duration_global.count() << endl;
+    time_file << "Load Patcher CNN Rebuilder Filter Save Total" << endl;
+    time_file << duration_load.count() << " " << duration_patcher.count() << " " << duration_runCNN.count() << " " << duration_rebuilder.count() << " 0 " << duration_save.count() << " " << duration_global.count() << endl;
     time_file.close();
+
+    cout << "[SR7 INFO] Execution times saved in execution_times.txt" << endl;
 
     cout << "\n###################################### END ###################################################\n" << endl;
 

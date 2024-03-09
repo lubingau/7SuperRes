@@ -180,16 +180,14 @@ void rebuild_image(int8_t* outputBuffer, int16_t* posBuffer, Mat& reconstruced_i
     //         }
     //     }
     // }
-    int8_t* end = outputBuffer + n_patches * outSize - 1;
 
-    // Parcours le buffer
-    while (outputBuffer < end) {
-        // Remplace les valeurs négatives par 0
-        if (*outputBuffer < 0) {
-            *outputBuffer = 0;
-        }
-        ++outputBuffer;
-    }
+    // int8_t* end = outputBuffer + n_patches * outSize - 1;
+    // while (outputBuffer < end) {
+    //     if (*outputBuffer < 0) {
+    //         *outputBuffer = 0;
+    //     }
+    //     ++outputBuffer;
+    // }
 
     if (stride_pixels == patch_size){
         cout << "[SR7 WARNING Rebuilder] There is no stride. The rebuilder is not designed for this case." << endl;
@@ -200,8 +198,9 @@ void rebuild_image(int8_t* outputBuffer, int16_t* posBuffer, Mat& reconstruced_i
     }
     for (int n=0; n<n_patches; n++){
 
-        Mat patch(patch_size, patch_size, CV_8UC3, &outputBuffer[n * outSize]);
-        patch *= 2;
+        Mat patch(patch_size, patch_size, CV_8SC3, &outputBuffer[n * outSize]);
+        patch.convertTo(patch, CV_8UC3);
+        patch *= 2; // rescalling (output_scale*255 = 0.0078125*255 = 2)
 
         int col = 2*posBuffer[2*n]; // x2 scale
         int row = 2*posBuffer[2*n+1];

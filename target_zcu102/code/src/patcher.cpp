@@ -42,7 +42,7 @@ void patch_image(const Mat& image, int8_t* inputBuffer, int16_t* posBuffer, cons
     for (int i = 0; i < image.rows - patch_size - overlap; i += stride_pixels) {
         for (int j = 0; j < image.cols - patch_size - overlap; j += stride_pixels) {
             Rect patch_rect(j, i, patch_size, patch_size);
-            Mat patch = image(patch_rect).clone()/4;
+            Mat patch = image(patch_rect).clone()/4; // Divide by 4 to scaling (input_scale/255 = 64/255 = 1/4)
 
             memcpy(&inputBuffer[n_patches * inSize], patch.data, inSize);
             memcpy(&posBuffer[2*n_patches], &i, posSize);

@@ -130,7 +130,7 @@ void runCNN(int8_t* inputBuffer, int8_t* outputBuffer, const string xmodel_path,
         output_folder: The folder containing the output images.
     */
 
-    assert((num_threads <= 12) & (num_threads >= 1));
+    assert((num_threads <= 6) & (num_threads >= 1));
     
     /////////////////////////////////////////////////////////////////////////////////////////////
     // PREPARE DPU STUFF
@@ -138,8 +138,7 @@ void runCNN(int8_t* inputBuffer, int8_t* outputBuffer, const string xmodel_path,
     auto graph = xir::Graph::deserialize(xmodel_path);
     auto subgraph = get_dpu_subgraph(graph.get());
     CHECK_EQ(subgraph.size(), 1u)
-        << "CNN should have one and only one dpu subgraph.";
-    LOG(INFO) << "[SR7 INFO AI] Create running for subgraph: " << subgraph[0]->get_name() << endl;
+        << "[SR7 ERROR AI] CNN should have one and only one dpu subgraph." << endl;
     cout << "[SR7 INFO AI] Create running for subgraph: " << subgraph[0]->get_name() << endl;
     
     int num_images_x_thread = 0;
@@ -153,12 +152,6 @@ void runCNN(int8_t* inputBuffer, int8_t* outputBuffer, const string xmodel_path,
     auto runner3 = vart::Runner::create_runner(subgraph[0], "run");
     auto runner4 = vart::Runner::create_runner(subgraph[0], "run");
     auto runner5 = vart::Runner::create_runner(subgraph[0], "run");
-    auto runner6 = vart::Runner::create_runner(subgraph[0], "run");
-    auto runner7 = vart::Runner::create_runner(subgraph[0], "run");
-    auto runner8 = vart::Runner::create_runner(subgraph[0], "run");
-    auto runner9 = vart::Runner::create_runner(subgraph[0], "run");
-    auto runner10 = vart::Runner::create_runner(subgraph[0], "run");
-    auto runner11 = vart::Runner::create_runner(subgraph[0], "run");
 
     // get in/out tensors and dims
     auto inputTensors = runner->get_input_tensors();
@@ -240,9 +233,9 @@ void runCNN(int8_t* inputBuffer, int8_t* outputBuffer, const string xmodel_path,
     cout << "[SR7 INFO AI] Number of images in the first thread: " << num_images_first_thread << endl;
     cout << "[SR7 INFO AI] Number of images per thread: " << num_images_x_thread << endl;
 
-    // memory allocation
-    Mat image = cv::Mat(inHeight, inWidth, CV_8UC3);
-    Mat debug = cv::Mat(outHeight, outWidth, CV_8UC3);
+    // // memory allocation
+    // Mat image = cv::Mat(inHeight, inWidth, CV_8UC3);
+    // Mat debug = cv::Mat(outHeight, outWidth, CV_8UC3);
     
     // int8_t *inputBuffer = new int8_t[(num_of_images)*inSize];
     // int8_t *outputBuffer    = new int8_t[(num_of_images)*outSize];
@@ -262,8 +255,8 @@ void runCNN(int8_t* inputBuffer, int8_t* outputBuffer, const string xmodel_path,
 
     // split images in chunks, each chunks for its own thead
     // avoid pointing to wrong memorycv::Mat> locations
-    int8_t *inputBuffer0, *inputBuffer1, *inputBuffer2, *inputBuffer3, *inputBuffer4, *inputBuffer5, *inputBuffer6, *inputBuffer7, *inputBuffer8, *inputBuffer9, *inputBuffer10, *inputBuffer11;
-    int8_t *outputBuffer0, *outputBuffer1, *outputBuffer2, *outputBuffer3, *outputBuffer4, *outputBuffer5, *outputBuffer6, *outputBuffer7, *outputBuffer8, *outputBuffer9, *outputBuffer10, *outputBuffer11;
+    int8_t *inputBuffer0, *inputBuffer1, *inputBuffer2, *inputBuffer3, *inputBuffer4, *inputBuffer5;
+    int8_t *outputBuffer0, *outputBuffer1, *outputBuffer2, *outputBuffer3, *outputBuffer4, *outputBuffer5;
 
     if (num_threads >= 1) {
         inputBuffer0 = inputBuffer;
@@ -289,30 +282,6 @@ void runCNN(int8_t* inputBuffer, int8_t* outputBuffer, const string xmodel_path,
         inputBuffer5 = inputBuffer + inSize * ( 4 * num_images_x_thread + num_images_first_thread);
         outputBuffer5 = outputBuffer + outSize * ( 4 * num_images_x_thread + num_images_first_thread);
     }
-    if (num_threads >= 7) {
-        inputBuffer6 = inputBuffer + inSize * ( 5 * num_images_x_thread + num_images_first_thread);
-        outputBuffer6 = outputBuffer + outSize * ( 5 * num_images_x_thread + num_images_first_thread);
-    }
-    if (num_threads >= 8) {
-        inputBuffer7 = inputBuffer + inSize * ( 6 * num_images_x_thread + num_images_first_thread);
-        outputBuffer7 = outputBuffer + outSize * ( 6 * num_images_x_thread + num_images_first_thread);
-    }
-    if (num_threads >= 9) {
-        inputBuffer8 = inputBuffer + inSize * ( 7 * num_images_x_thread + num_images_first_thread);
-        outputBuffer8 = outputBuffer + outSize * ( 7 * num_images_x_thread + num_images_first_thread);
-    }
-    if (num_threads >= 10) {
-        inputBuffer9 = inputBuffer + inSize * ( 8 * num_images_x_thread + num_images_first_thread);
-        outputBuffer9 = outputBuffer + outSize * ( 8 * num_images_x_thread + num_images_first_thread);
-    }
-    if (num_threads >= 11) {
-        inputBuffer10 = inputBuffer + inSize * ( 9 * num_images_x_thread + num_images_first_thread);
-        outputBuffer10 = outputBuffer + outSize * ( 9 * num_images_x_thread + num_images_first_thread);
-    }
-    if (num_threads >= 12) {
-        inputBuffer11 = inputBuffer + inSize * (10 * num_images_x_thread + num_images_first_thread);
-        outputBuffer11 = outputBuffer + outSize * (10 * num_images_x_thread + num_images_first_thread);
-    }
 
     /////////////////////////////////////////////////////////////////////////////////////////////
     // MULTITHREADING DPU EXECUTION WITH BATCH
@@ -334,19 +303,8 @@ void runCNN(int8_t* inputBuffer, int8_t* outputBuffer, const string xmodel_path,
         workers[i] = thread(runDPU, runner4.get(), ref(inputBuffer4), ref(outputBuffer4), &shapes, num_images_x_thread);
         if (i == 5)
         workers[i] = thread(runDPU, runner5.get(), ref(inputBuffer5), ref(outputBuffer5), &shapes, num_images_x_thread);
-        if (i == 6)
-        workers[i] = thread(runDPU, runner6.get(), ref(inputBuffer6), ref(outputBuffer6), &shapes, num_images_x_thread);
-        if (i == 7)
-        workers[i] = thread(runDPU, runner7.get(), ref(inputBuffer7), ref(outputBuffer7), &shapes, num_images_x_thread);
-        if (i == 8)
-        workers[i] = thread(runDPU, runner8.get(), ref(inputBuffer8), ref(outputBuffer8), &shapes, num_images_x_thread);
-        if (i == 9)
-        workers[i] = thread(runDPU, runner9.get(), ref(inputBuffer9), ref(outputBuffer9), &shapes, num_images_x_thread);
-        if (i == 10)
-        workers[i] = thread(runDPU, runner10.get(), ref(inputBuffer10), ref(outputBuffer10), &shapes, num_images_x_thread);
-        if (i == 11)
-        workers[i] = thread(runDPU, runner11.get(), ref(inputBuffer11), ref(outputBuffer11), &shapes, num_images_x_thread);
     }
+
     // Release thread resources.
     for (auto &w : workers) {
         if (w.joinable()) w.join();
