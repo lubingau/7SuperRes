@@ -59,7 +59,10 @@ void ListImages(const string &path, vector<string> &name_vec, vector<Mat>& img_p
     closedir(dir);
 }
 
-void rebuild_image(const vector<Mat>& img_patch_vec, const vector<string>& name_vec, Mat& reconstruced_image, int patch_size, float stride
+void rebuild_image(int8_t* outputBuffer, int16_t* posBuffer, Mat& reconstruced_image,
+    const int patch_size,
+    const float stride,
+    const int n_patches
 #if DEBUG_REBUILDER
     , const string& output_images_folder
 #endif
@@ -68,18 +71,20 @@ void rebuild_image(const vector<Mat>& img_patch_vec, const vector<string>& name_
     A method to rebuild an image from patches and apply division rectangles to correct the overlapping regions due to the stride used.
 
     Args:
-        img_patch_vec: The vector containing the patches to be used to rebuild the image.
-        name_vec: The vector containing the names of the patches.
+        outputBuffer: The buffer containing the patches.
+        posBuffer: The buffer containing the positions of the patches.
         reconstruced_image: The output image after rebuilding.
         patch_size: The size of the patches.
         stride: The stride used to create the patches.
+        n_patches: The number of patches.
     if DEBUG:
         output_images_folder: The folder where the patches divied by rectangles will be saved.
     */
 
     cout << "[SR7 INFO Rebuilder] Start rebuilding image" << endl;
-    cout << "[SR7 INFO Rebuilder] Found " << img_patch_vec.size() << " patches" << endl;
+    cout << "[SR7 INFO Rebuilder] Found " << n_patches << " patches" << endl;
 
+    int outSize = patch_size * patch_size * reconstruced_image.channels();
     int stride_pixels = patch_size * stride;
     int overlap = patch_size - stride_pixels;
     int underlap = patch_size - 2*overlap;
@@ -96,8 +101,8 @@ void rebuild_image(const vector<Mat>& img_patch_vec, const vector<string>& name_
     int n_patch_col = (reconstruced_image.cols-2*overlap)/stride_pixels;
     int n_patch_row = (reconstruced_image.rows-2*overlap)/stride_pixels;
 #if DEBUG_REBUILDER
-    cout << "[SR7 INFO Rebuilder] n_patch_col : " << n_patch_col << endl;
-    cout << "[SR7 INFO Rebuilder] n_patch_row : " << n_patch_row << endl;
+    cout << "[SR7 INFO Rebuilder] n_patch_col (i) : " << n_patch_col << endl;
+    cout << "[SR7 INFO Rebuilder] n_patch_row (j): " << n_patch_row << endl;
 #endif
 
     int overlap_col = patch_size - (reconstruced_image.cols - n_patch_col*stride_pixels - overlap);
@@ -107,7 +112,7 @@ void rebuild_image(const vector<Mat>& img_patch_vec, const vector<string>& name_
     cout << "[SR7 INFO Rebuilder] overlap_row : " << overlap_row << endl;
 #endif
 
-    if (stride!=1.0) {
+    
     // Regular rectangles
     Rect left(0, overlap, overlap, underlap);
     Rect top(overlap, 0, underlap, overlap);
@@ -165,22 +170,46 @@ void rebuild_image(const vector<Mat>& img_patch_vec, const vector<string>& name_
     // Last corners
     Rect L_left(0, overlap_row, overlap_col, patch_size-overlap_row);
     Rect L_top(0, 0, overlap_col, overlap_row);
-    Rect L_corner_top_right(overlap_col, 0, patch_size-overlap_col, overlap_row);
+    Rect L_corner_top_right(overlap_col, 0, patch_size-overlap_col, overlap_row);    
+
+    // // Avoid artifacts
+    // for (int n=0; n<n_patches; n++){
+    //     for (int i=0; i<outSize; i++){
+    //         if (outputBuffer[n * outSize + i] < 0){
+    //             outputBuffer[n * outSize + i] = 0;
+    //         }
+    //     }
+    // }
+
+    // int8_t* end = outputBuffer + n_patches * outSize - 1;
+    // while (outputBuffer < end) {
+    //     if (*outputBuffer < 0) {
+    //         *outputBuffer = 0;
+    //     }
+    //     ++outputBuffer;
+    // }
+
+    if (stride_pixels == patch_size){
+        cout << "[SR7 WARNING Rebuilder] There is no stride. The rebuilder is not designed for this case." << endl;
     }
+    else if (stride_pixels > patch_size){
+        cout << "[SR7 ERROR Rebuilder] Stride is greater than patch size" << endl;
+        exit(1);
+    }
+    for (int n=0; n<n_patches; n++){
 
-    for (int n=0; n<name_vec.size(); n++){
-        string patch_name = name_vec[n];
-        Mat patch = img_patch_vec[n];
+        Mat patch(patch_size, patch_size, CV_8SC3, &outputBuffer[n * outSize]);
+        patch.convertTo(patch, CV_8UC3);
+        patch *= 2; // rescalling (output_scale*255 = 0.0078125*255 = 2)
 
-        size_t i_pos = patch_name.find("i");
-        size_t j_pos = patch_name.find("j");
-        size_t endi_pos = patch_name.find("endi");
-        size_t endj_pos = patch_name.find("endj");
+        int col = 2*posBuffer[2*n]; // x2 scale
+        int row = 2*posBuffer[2*n+1];
 
-        int row = 2*stoi(patch_name.substr(i_pos + 1, endi_pos - i_pos - 1));
-        int col = 2*stoi(patch_name.substr(j_pos + 1, endj_pos - j_pos - 1));
+        // cout << "[SR7 INFO Rebuilder] Patch " << n << " at position (" << col << ", " << row << ")" << endl;
 
-        if (stride!=1.0) {
+        string patch_name = to_string(col) + "_" + to_string(row) + ".png";
+
+        if (stride_pixels < patch_size){           
         // First patch (top left corner)
         if ((row == 0) and (col == 0)) {
             patch(right) *= 0.5;
@@ -408,8 +437,13 @@ void rebuild_image(const vector<Mat>& img_patch_vec, const vector<string>& name_
         else {
             cout << "[SR7 ERROR Rebuilder] Patch " << patch_name << " is not in the right position" << endl;
         }
-        }
-    
+        } // don't remove
+
+        if (n+1 % 100 == 0){
+            cout << "\x1b[A";
+            cout << "[SR7 INFO Rebuilder] Patches rebuilded: " << n << endl;
+        }  
+
         // Apply patch on the reconstructed image
         Rect patch_rect(row, col, patch.rows, patch.cols);
         reconstruced_image(patch_rect) += patch;

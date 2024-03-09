@@ -1,0 +1,8 @@
+{
+    "lib": "libvart-dpu-runner.so",
+    "filename": "fcn8.xmodel",
+    "kernel": [
+        "subgraph_FCN8__FCN8_1786_fix"
+    ],
+    "target": "DPUCZDX8G_ISA1_B4096"
+}

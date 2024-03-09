@@ -12,29 +12,31 @@
 # MODEL_NAME=$3
 
 
-echo " "
-echo "==========================================================================="
-echo "WARNING: "
-echo "  'run_all.sh' MUST ALWAYS BE LAUNCHED BELOW THE 'files' FOLDER LEVEL "
-echo "  (SAME LEVEL OF 'scripts' AND 'target' FOLDER)                       "
-echo "  AS IT APPLIES RELATIVE PATH AND NOT ABSOLUTE PATHS                  "
-echo "==========================================================================="
-echo " "
+# echo " "
+# echo "==========================================================================="
+# echo "WARNING: "
+# echo "  'run_all.sh' MUST ALWAYS BE LAUNCHED BELOW THE 'files' FOLDER LEVEL "
+# echo "  (SAME LEVEL OF 'scripts' AND 'target' FOLDER)                       "
+# echo "  AS IT APPLIES RELATIVE PATH AND NOT ABSOLUTE PATHS                  "
+# echo "==========================================================================="
+# echo " "
 
 # read arguments of the script
 if [ $# -eq 0 ]; then
     echo "No arguments provided"
-    FLOAT_MODEL_FILENAME=fsrcnn6_relu_35ep.pt
+    FLOAT_MODEL_FILENAME="fsrcnn6_relu_35ep.pt"
+    MODEL_TYPE="fsrcnn"
     echo "Using default model: ${FLOAT_MODEL_FILENAME}"
 else
-    FLOAT_MODEL_FILENAME=$1
+    MODEL_TYPE=$1
+    FLOAT_MODEL_FILENAME=$2
     echo "Using model: ${FLOAT_MODEL_FILENAME}"
 fi
 
 CNN=${FLOAT_MODEL_FILENAME%.*}
 QUANTIZED_MODEL_FILENAME="FSRCNN_int.pt"
 ARCH="/opt/vitis_ai/compiler/arch/DPUCZDX8G/ZCU102/arch.json"
-
+	
 # folders
 WORK_DIR=./build
 
@@ -51,8 +53,8 @@ COMPILE_DIR=${WORK_DIR}/3_compile_model
 
 PREDICT_FLOAT_DIR=${PREDICT_DIR}/${CNN}/float
 PREDICT_QUANT_DIR=${PREDICT_DIR}/${CNN}/quant
-PREDICT_GT_DIR=${PREDICT_DIR}/${CNN}/gt
-PREDICT_LR_DIR=${PREDICT_DIR}/${CNN}/blr
+PREDICT_LABEL_DIR=${PREDICT_DIR}/${CNN}/label
+PREDICT_INPUT_DIR=${PREDICT_DIR}/${CNN}/input
 
 # logs & results files
 QUANT_LOG=${CNN}_quantize_model.log
@@ -73,7 +75,7 @@ COMP_LOG=${CNN}_compile.log
 
     mkdir ${LOG_DIR} ${QUANT_DIR} ${COMPILE_DIR} ${PREDICT_DIR} 2> /dev/null
     mkdir ${LOG_DIR}/${CNN} ${QUANT_DIR}/${CNN} ${COMPILE_DIR}/${CNN} ${PREDICT_DIR}/${CNN} 2> /dev/null
-    mkdir ${PREDICT_FLOAT_DIR} ${PREDICT_QUANT_DIR} ${PREDICT_GT_DIR} ${PREDICT_LR_DIR} 2> /dev/null
+    mkdir ${PREDICT_FLOAT_DIR} ${PREDICT_QUANT_DIR} ${PREDICT_LABEL_DIR} ${PREDICT_INPUT_DIR} 2> /dev/null
 }
 
 
@@ -83,7 +85,7 @@ COMP_LOG=${CNN}_compile.log
 1_quantize_model(){
     echo " "
     echo "----------------------------------------------------------------------------------"
-    echo "[DB INFO STEP4] QUANTIZE VCoR TRAINED CNN"
+    echo "[SR7 INFO] QUANTIZE VCoR TRAINED CNN"
     echo "----------------------------------------------------------------------------------"
     # bash -x ./scripts/run_quant.sh
 
@@ -102,33 +104,36 @@ COMP_LOG=${CNN}_compile.log
     echo "------------------------CALIBRATION------------------------"
     echo "-----------------------------------------------------------"
     python vai_q_pytorch.py \
+        --model_type ${MODEL_TYPE} \
         --float_model_file ../${MODEL_DIR}/${FLOAT_MODEL_FILENAME} \
         --quantized_model_dir ../${QUANT_DIR}/${CNN} \
         --dataset_dir ../${DATASET_DIR} \
         --quant_mode calib \
-        --calib_num_img 1000
+        --calib_num_img 500
 
     # fix test
     echo "----------------------------------------------------"
     echo "------------------------TEST------------------------"
     echo "----------------------------------------------------"
     python vai_q_pytorch.py \
+        --model_type ${MODEL_TYPE} \
         --float_model_file ../${MODEL_DIR}/${FLOAT_MODEL_FILENAME} \
         --quantized_model_dir ../${QUANT_DIR}/${CNN} \
         --dataset_dir ../${DATASET_DIR} \
         --quant_mode test \
-        --calib_num_img 1000
+        --calib_num_img 500
     
     # deploy
     echo "------------------------------------------------------"
     echo "------------------------DEPLOY------------------------"
     echo "------------------------------------------------------"
     python vai_q_pytorch.py \
+        --model_type ${MODEL_TYPE} \
         --float_model_file ../${MODEL_DIR}/${FLOAT_MODEL_FILENAME} \
         --quantized_model_dir ../${QUANT_DIR}/${CNN} \
         --dataset_dir ../${DATASET_DIR} \
         --quant_mode test \
-        --calib_num_img 1000 \
+        --calib_num_img 500 \
         --deploy
 }
 
@@ -143,9 +148,11 @@ COMP_LOG=${CNN}_compile.log
     cd code
     echo ../${PREDICT_DIR}/${CNN}
     python eval_quantized_model.py \
+        --model_type ${MODEL_TYPE} \
 	    --float_model_file ../${MODEL_DIR}/${FLOAT_MODEL_FILENAME} \
         --quantized_model_file ../${QUANT_DIR}/${CNN}/${QUANTIZED_MODEL_FILENAME} \
-        --eval_num_img 1000 \
+        --dataset_dir ../${DATASET_DIR} \
+        --eval_num_img 3000 \
         --save_images \
         --save_images_dir ../${PREDICT_DIR}/${CNN}
     cd ..
@@ -185,41 +192,18 @@ COMP_LOG=${CNN}_compile.log
 
   }
 
-# ===========================================================================
-# main for VCoR
-# ===========================================================================
-# do not change the order of the following commands
-
-
-main_vcor(){
-  echo " "
-  echo " "
-#   vcor_dataset            # 2
-#   vcor_training           # 3
-  vcor_quantize_resnet18  # 4
-  vcor_compile_resnet18   # 5
-  ###cross compile the application on target
-  ##cd target
-  ##source ./vcor/run_all_vcor_target.sh compile_cif10
-  ##cd ..
-  echo " "
-  echo " "
-}
-
 
 # ===========================================================================
-# main for all
+# main
 # ===========================================================================
 
 # do not change the order of the following commands
 
 pip install randaugment
 pip install torchsummary
-# clean_dos2unix
+
 0_clean_and_make_directories
 1_quantize_model
 2_eval_quantized_model
 3_compile_vai_zcu102
 4_display_subgraphs
-
-
