@@ -19,10 +19,10 @@ def get_arguments():
     """
     parser = argparse.ArgumentParser(description="Vitis AI TF2 Evaluation")
 
-    # model config
+    # model path
     parser.add_argument("--float_model_file", type=str,
                         help="h5 floating point file path name")
-    # quantization config
+    # quantization path
     parser.add_argument("--quantized_model_file", type=str,
                         help="quantized model file path name ")
     # train images directory
