@@ -14,8 +14,8 @@ import numpy as np
 import cv2
 from PIL import Image
 import scipy.io as scio
-from sr_model import FSRCNN
-from data_loader import SuperResolutionDataset
+from models import *
+from data_loaders import *
 
 # ==========================================================================================
 # Get Input Arguments
@@ -28,6 +28,9 @@ def get_arguments():
     """
     parser = argparse.ArgumentParser(description="Vitis AI Pytorch Quantization")
 
+    # model type
+    parser.add_argument("--model_type", type=str, default="fsrcnn",
+                        help="model type")
     # model config
     parser.add_argument("--float_model_file", type=str,
                         help="pt floating point file path name")
@@ -35,10 +38,10 @@ def get_arguments():
     parser.add_argument("--quantized_model_dir", type=str,
                         help="quantized model file path name ")
     # dataset directory
-    parser.add_argument("--dataset_dir", type=str, default="../../supres_dataset",
+    parser.add_argument("--dataset_dir", type=str, default="../supres_dataset",
                         help="dataset directory")
     # test batch size
-    parser.add_argument("--test_batch_size", type=int, default=128,
+    parser.add_argument("--test_batch_size", type=int, default=64,
                         help="test batch size")
     # quantization mode
     parser.add_argument("--quant_mode", default="calib", type=str,
@@ -58,25 +61,24 @@ def get_arguments():
 
     return parser.parse_args()
 
-def test(model, device, test_loader):
+def PSNR(mse):
+    """Calculate PSNR from MSE."""
+    return 10.0 * np.log10(1.0 / mse)
+
+def test(model_type, model, device, test_loader, criterion):
     model.eval()
-    test_loss = 0
-    n_batches = 0
-    n_batches_max = 10000
+    q_test_results = []
     with torch.no_grad():
-        for blr_data, gt_data in test_loader:
-            if n_batches >= n_batches_max:
-                break
-            blr_images, gt_images = blr_data.to(device), gt_data.to(device)
-            sr_images = model(blr_images)
-            
-            test_loss += F.mse_loss(sr_images, gt_images).item()
-            n_batches += 1
-    
-    test_loss /= len(test_loader.dataset)
-    psnr = 10 * np.log10(1 / test_loss)
-    print('\nSuper-resolution Test set: Average loss: {:.4f}'.format(test_loss))
-    print('Super-resolution Test set: Average PSNR: {:.4f}\n'.format(psnr))
+        for input_data, label_data in test_loader:
+            input_images, output_label = input_data.to(device), label_data.to(device)
+            output_predict = model(input_images)
+            q_test_results.append(criterion(output_predict, output_label.float()).item())
+    q_test_results = np.array(q_test_results)
+    q_test_results = np.mean(q_test_results)
+    if model_type == "fsrcnn":
+        print("--------> Results on Test Dataset with Float Model:", PSNR(q_test_results))
+    elif model_type == "fcn8":
+        print("--------> Results on Test Dataset with Float Model:", q_test_results)
 
 
 def main():
@@ -92,31 +94,56 @@ def main():
     if args.deploy:
         args.test_batch_size = 1
 
-    transform = transforms.Compose([transforms.ToTensor()])
-
-    blr_dir = os.path.join(args.dataset_dir, 'test/blr')
-    gt_dir = os.path.join(args.dataset_dir, 'test/gt')
-    if args.calib_num_img is None:
-        args.calib_num_img = len(os.listdir(blr_dir))
+    # ==========================================================================================
+    # prepare your data
+    # ==========================================================================================
+    print("\n[SR7 INFO] Loading Test Data ...")
     
-    super_resolution_dataset = SuperResolutionDataset(blr_dir, gt_dir, args.calib_num_img, transform)
+    if args.model_type == "fsrcnn":
+        input_dir = os.path.join(args.dataset_dir, 'test/blr')
+        label_dir = os.path.join(args.dataset_dir, 'test/gt')
+        if args.calib_num_img is None:
+            args.calib_num_img = len(os.listdir(input_dir))
+        dataset = SuperResolutionDataset(input_dir, label_dir, args.calib_num_img, transform=transforms.ToTensor())
+    elif args.model_type == "fcn8":
+        input_dir = os.path.join(args.dataset_dir, 'train/image')
+        label_dir = os.path.join(args.dataset_dir, 'train/mask')
+        dataset = SegmentationDataset(input_dir, label_dir, args.calib_num_img, ratio=1, patch_size=256)
 
-    super_resolution_loader = torch.utils.data.DataLoader(
-        super_resolution_dataset, batch_size=args.test_batch_size, shuffle=True, drop_last=True, num_workers=4
+    data_loader = torch.utils.data.DataLoader(
+        dataset, batch_size=args.test_batch_size, shuffle=True, drop_last=True, num_workers=4
     )
+    
+    X_test_shape = np.insert(np.array(dataset[0][0].shape), 0, len(dataset))
+    Y_test_shape = np.insert(np.array(dataset[0][1].shape), 0, len(dataset))
+    print("--------> X_test shape = ", X_test_shape)
+    print("--------> Y_test shape = ", Y_test_shape)
 
-    # Get the input shape from the first data of the super_resolution_loader
-    for blr_data, gt_data in super_resolution_loader:
-        input_shape = blr_data.shape[1:]
+    # Get the input shape from the first data of the data_loader
+    for input_data, label_data in data_loader:
+        input_shape = input_data.shape[1:]
+        output_shape = label_data.shape[1:]
         break
-    print(input_shape)
-    upscale_factor = 2
-    color_channels = input_shape[0]
+    print("[SR7 INFO] Input shape: ", input_shape, ". Output shape: ", output_shape)
 
-    model = FSRCNN(d=56, s=16, m=6, input_size=input_shape,   upscaling_factor=upscale_factor, color_channels=color_channels)
-
-    model.load_state_dict(torch.load(args.float_model_file , map_location=device), strict=True)
-
+    # Initialize the model
+    if args.model_type == "fsrcnn":
+        upscale_factor = 2
+        color_channels = input_shape[0]
+        model = FSRCNN(d=56, s=16, m=6, input_size=input_shape,   upscaling_factor=upscale_factor, color_channels=color_channels)
+        criterion = nn.MSELoss()
+    elif args.model_type == "fcn8":
+        num_classes = output_shape[0]
+        model = FCN8(nClasses=num_classes)
+        criterion = nn.CrossEntropyLoss()
+    else:
+        raise ValueError("Model type not found")
+    
+    # ==========================================================================================
+    # Load Float and Quantized Models
+    # ==========================================================================================
+    print("[SR7 INFO] Loading Float Model...")
+    model.load_state_dict(torch.load(args.float_model_file, map_location=device), strict=True)
     summary(model, input_shape)
 
     # from pytorch_nndct.utils import summary
@@ -127,7 +154,7 @@ def main():
     quantizer = torch_quantizer(args.quant_mode, model, (input), output_dir=args.quantized_model_dir, device=device)
     model = quantizer.quant_model
 
-    test(model, device, super_resolution_loader)
+    test(args.model_type, model, device, data_loader, criterion)
 
     if args.quant_mode == 'calib':
         quantizer.export_quant_config()

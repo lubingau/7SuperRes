@@ -13,9 +13,11 @@ import numpy as np
 import cv2
 from PIL import Image
 import scipy.io as scio
-from sr_model import FSRCNN
-from data_loader import SuperResolutionDataset
 import matplotlib.pyplot as plt
+
+# import models and data loaders
+from models import *
+from data_loaders import *
 
 # ==========================================================================================
 # Get Input Arguments
@@ -28,18 +30,24 @@ def get_arguments():
     """
     parser = argparse.ArgumentParser(description="Vitis AI Pytorch Evaluation")
 
-    # model config
+    # model type
+    parser.add_argument("--model_type", type=str, default="fsrcnn",
+                        help="model type")
+    # model path
     parser.add_argument("--float_model_file", type=str,
                         help="pt floating point file path name")
-    # quantization config
+    # quantization path
     parser.add_argument("--quantized_model_file", type=str,
                         help="pt quantized model file path name ")
     # dataset directory
-    parser.add_argument("--dataset_dir", type=str, default="../../supres_dataset",
+    parser.add_argument("--dataset_dir", type=str, default="../supres_dataset",
                         help="dataset directory")
     # number of images to use for evaluation
     parser.add_argument("--eval_num_img", type=int, default=None,
                         help="number of images to use for evaluation")
+    # batch size
+    parser.add_argument("--batch_size", type=int, default=64,
+                        help="batch size")
     # save predicted images
     parser.add_argument("--save_images", action="store_true",
                         help="save predicted images")
@@ -76,45 +84,56 @@ def main():
 
     # os.environ["CUDA_VISIBLE_DEVICES"] = args.gpus
 
-    FLOAT_H5_FILE = args.float_model_file
-    QUANT_H5_FILE = args.quantized_model_file
-    SAVING_DIR = args.save_images_dir
-
-    FLOAT_DIR = os.path.join(SAVING_DIR, "float")
-    QUANT_DIR = os.path.join(SAVING_DIR, "quant")
-    GT_DIR = os.path.join(SAVING_DIR, "gt")
-    LR_DIR = os.path.join(SAVING_DIR, "blr")
+    if args.save_images:
+        SAVING_DIR = args.save_images_dir
+        FLOAT_DIR = os.path.join(SAVING_DIR, "float")
+        QUANT_DIR = os.path.join(SAVING_DIR, "quant")
+        INPUT_DIR = os.path.join(SAVING_DIR, "input")
+        LABEL_DIR = os.path.join(SAVING_DIR, "label")
 
     # ==========================================================================================
     # prepare your data
     # ==========================================================================================
     print("\n[SR7 INFO] Loading Test Data ...")
-
-    transform = transforms.Compose([transforms.ToTensor()])
-
-    blr_dir = os.path.join(args.dataset_dir, 'test/blr')
-    gt_dir = os.path.join(args.dataset_dir, 'test/gt')
-    if args.eval_num_img is None:
-        args.eval_num_img = len(os.listdir(blr_dir))
     
-    super_resolution_dataset = SuperResolutionDataset(blr_dir, gt_dir, args.eval_num_img, transform)
+    if args.model_type == "fsrcnn":
+        input_dir = os.path.join(args.dataset_dir, 'test/blr')
+        label_dir = os.path.join(args.dataset_dir, 'test/gt')
+        if args.eval_num_img is None:
+            args.eval_num_img = len(os.listdir(input_dir))
+        dataset = SuperResolutionDataset(input_dir, label_dir, args.eval_num_img, transform=transforms.ToTensor())
+    elif args.model_type == "fcn8":
+        input_dir = os.path.join(args.dataset_dir, 'train/image')
+        label_dir = os.path.join(args.dataset_dir, 'train/mask')
+        dataset = SegmentationDataset(input_dir, label_dir, args.eval_num_img, ratio=1, patch_size=256)
 
-    super_resolution_loader = torch.utils.data.DataLoader(
-        super_resolution_dataset, batch_size=1, shuffle=True, drop_last=True, num_workers=4
+    data_loader = torch.utils.data.DataLoader(
+        dataset, batch_size=args.batch_size, shuffle=True, drop_last=True, num_workers=4
     )
-    print("--------> X_test shape = ", super_resolution_dataset[0][0].shape)
-    print("--------> Y_test shape = ", super_resolution_dataset[0][1].shape)
+    X_test_shape = np.insert(np.array(dataset[0][0].shape), 0, len(dataset))
+    Y_test_shape = np.insert(np.array(dataset[0][1].shape), 0, len(dataset))
+    print("--------> X_test shape = ", X_test_shape)
+    print("--------> Y_test shape = ", Y_test_shape)
 
-    # Get the input shape from the first data of the super_resolution_loader
-    for blr_data, gt_data in super_resolution_loader:
-        input_shape = blr_data.shape[1:]
+    # Get the input shape from the first data of the data_loader
+    for input_data, label_data in data_loader:
+        input_shape = input_data.shape[1:]
+        output_shape = label_data.shape[1:]
         break
-    print(input_shape)
-    upscale_factor = 2
-    color_channels = input_shape[0]
+    print("[SR7 INFO] Input shape: ", input_shape, ". Output shape: ", output_shape)
 
     # Initialize the model
-    model = FSRCNN(d=56, s=16, m=6, input_size=input_shape,   upscaling_factor=upscale_factor, color_channels=color_channels)
+    if args.model_type == "fsrcnn":
+        upscale_factor = 2
+        color_channels = input_shape[0]
+        model = FSRCNN(d=56, s=16, m=6, input_size=input_shape,   upscaling_factor=upscale_factor, color_channels=color_channels)
+        criterion = nn.MSELoss()
+    elif args.model_type == "fcn8":
+        num_classes = output_shape[0]
+        model = FCN8(nClasses=num_classes)
+        criterion = nn.CrossEntropyLoss()
+    else:
+        raise ValueError("Model type not found")
     
     # ==========================================================================================
     # Load Float and Quantized Models
@@ -136,28 +155,34 @@ def main():
     model.eval()
     test_results = []
     with torch.no_grad():
-        for blr_data, gt_data in super_resolution_loader:
-            blr_images, gt_images = blr_data.to(device), gt_data.to(device)
-            sr_images = model(blr_images)
-            # print(sr_images.shape)
-            test_results.append(F.mse_loss(sr_images, gt_images).item())
+        for input_data, label_data in data_loader:
+            input_images, output_label = input_data.to(device), label_data.to(device)
+            output_predict = model(input_images)
+            test_results.append(criterion(output_predict, output_label.float()).item())
     test_results = np.array(test_results)
     test_results = np.mean(test_results)
-    print("--------> Results on Test Dataset with Float Model:", PSNR(test_results))
+    if args.model_type == "fsrcnn":
+        print("--------> Results on Test Dataset with Float Model:", PSNR(test_results))
+    elif args.model_type == "fcn8":
+        print("--------> Results on Test Dataset with Float Model:", test_results)
 
     ## Quantized Model
     print("[SR7 INFO] Evaluation of Quantized Model...")
     q_model.eval()
     q_test_results = []
     with torch.no_grad():
-        for blr_data, gt_data in super_resolution_loader:
-            blr_images, gt_images = blr_data.to(device), gt_data.to(device)
-            sr_images = q_model(blr_images)
-            q_test_results.append(F.mse_loss(sr_images, gt_images).item())
+        for input_data, label_data in data_loader:
+            input_images, output_label = input_data.to(device), label_data.to(device)
+            output_predict = q_model(input_images)
+            q_test_results.append(criterion(output_predict, output_label.float()).item())
     q_test_results = np.array(q_test_results)
     q_test_results = np.mean(q_test_results)
-    print("--------> Results on Test Dataset with Quantized Model:", PSNR(q_test_results))
-    print("--------> Drop: ", PSNR(test_results) - PSNR(q_test_results))
+    if args.model_type == "fsrcnn":
+        print("--------> Results on Test Dataset with Float Model:", PSNR(q_test_results))
+        print("--------> Drop: ", PSNR(test_results) - PSNR(q_test_results))
+    elif args.model_type == "fcn8":
+        print("--------> Results on Test Dataset with Float Model:", q_test_results)
+        print("--------> Drop: ", test_results - q_test_results)
     # ==========================================================================================
 
     if args.save_images:
@@ -174,23 +199,33 @@ def main():
         X_test = []
         Y_test = []
         with torch.no_grad():
-            for blr_data, gt_data in super_resolution_loader:
-                blr_images, gt_images = blr_data.to(device), gt_data.to(device)
-                sr_images = model(blr_images)
-                Y_pred_float.append(sr_images)
-                sr_images = q_model(blr_images)
-                Y_pred_q.append(sr_images)        
-                X_test.append(blr_images)
-                Y_test.append(gt_images)
+            for input_data, label_data in data_loader:
+                input_images, output_label = input_data.to(device), label_data.to(device)
+                output_predict = model(input_images)
+                Y_pred_float.append(output_predict)
+                output_predict_q = q_model(input_images)
+                Y_pred_q.append(output_predict_q)        
+                X_test.append(input_images)
+                Y_test.append(output_label)
+        
+        torch.save(Y_pred_float, os.path.join(SAVING_DIR, "Y_pred_float.pt"))
+        torch.save(Y_pred_q, os.path.join(SAVING_DIR, "Y_pred_q.pt"))
+        torch.save(X_test, os.path.join(SAVING_DIR, "X_test.pt"))
+        torch.save(Y_test, os.path.join(SAVING_DIR, "Y_test.pt"))
 
 
         print("[SR7 INFO] Saving Images...")
         # Save in png format
         for i in range(len(Y_pred_float)):
-            cv2.imwrite(os.path.join(FLOAT_DIR, f"float_{i}.png"), Y_pred_float[i].squeeze().cpu().numpy().transpose(1, 2, 0) * 255)
-            cv2.imwrite(os.path.join(QUANT_DIR, f"quant_{i}.png"), Y_pred_q[i].squeeze().cpu().numpy().transpose(1, 2, 0) * 255)
-            cv2.imwrite(os.path.join(GT_DIR, f"gt_{i}.png"), Y_test[i].squeeze().cpu().numpy().transpose(1, 2, 0) * 255)
-            cv2.imwrite(os.path.join(LR_DIR, f"lr_{i}.png"), X_test[i].squeeze().cpu().numpy().transpose(1, 2, 0) * 255)
+            if args.model_type == "fcn8":
+                Y_pred_mask = dataset.masks_2_RGB(Y_pred_float[i][0]).numpy()
+                Y_pred_q_mask = dataset.masks_2_RGB(Y_pred_q[i][0]).numpy()
+                Y_test_mask = dataset.masks_2_RGB(Y_test[i][0]).numpy()
+                
+            cv2.imwrite(os.path.join(FLOAT_DIR, f"float_{i}.png"), cv2.cvtColor(Y_pred_mask, cv2.COLOR_BGR2RGB))
+            cv2.imwrite(os.path.join(QUANT_DIR, f"quant_{i}.png"), cv2.cvtColor(Y_pred_q_mask, cv2.COLOR_BGR2RGB))
+            cv2.imwrite(os.path.join(LABEL_DIR, f"label_{i}.png"), cv2.cvtColor(Y_test_mask, cv2.COLOR_BGR2RGB))
+            cv2.imwrite(os.path.join(INPUT_DIR, f"input_{i}.png"), cv2.cvtColor(X_test[i][0].cpu().numpy().transpose(1, 2, 0) * 255, cv2.COLOR_BGR2RGB))
 
         print("[SR7 INFO] Images saved in ", SAVING_DIR)
 # ==========================================================================================
