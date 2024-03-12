@@ -12,20 +12,20 @@
 # MODEL_NAME=$3
 
 
-# echo " "
-# echo "==========================================================================="
-# echo "WARNING: "
-# echo "  'run_all.sh' MUST ALWAYS BE LAUNCHED BELOW THE 'files' FOLDER LEVEL "
-# echo "  (SAME LEVEL OF 'scripts' AND 'target' FOLDER)                       "
-# echo "  AS IT APPLIES RELATIVE PATH AND NOT ABSOLUTE PATHS                  "
-# echo "==========================================================================="
-# echo " "
+echo " "
+echo "==========================================================================="
+echo "WARNING: "
+echo "  'run_all.sh' MUST ALWAYS BE LAUNCHED BELOW THE 'files' FOLDER LEVEL "
+echo "  (SAME LEVEL OF 'scripts' AND 'target' FOLDER)                       "
+echo "  AS IT APPLIES RELATIVE PATH AND NOT ABSOLUTE PATHS                  "
+echo "==========================================================================="
+echo " "
 
 # read arguments of the script
 if [ $# -eq 0 ]; then
     echo "No arguments provided"
-    FLOAT_MODEL_FILENAME="fsrcnn6_relu_35ep.pt"
-    MODEL_TYPE="fsrcnn"
+    FLOAT_MODEL_FILENAME="fcn8.pt"
+    MODEL_TYPE="fcn8"
     echo "Using default model: ${FLOAT_MODEL_FILENAME}"
 else
     MODEL_TYPE=$1
@@ -34,9 +34,9 @@ else
 fi
 
 CNN=${FLOAT_MODEL_FILENAME%.*}
-QUANTIZED_MODEL_FILENAME="FSRCNN_int.pt"
+QUANTIZED_MODEL_FILENAME="FCN8_int.pt"
 ARCH="/opt/vitis_ai/compiler/arch/DPUCZDX8G/ZCU102/arch.json"
-	
+
 # folders
 WORK_DIR=./build
 
@@ -44,7 +44,7 @@ TARGET_102=${WORK_DIR}/../target_zcu102
 # ADD YOUR TARGET BOARD HERE
 
 MODEL_DIR=${WORK_DIR}/../input_model
-DATASET_DIR=../supres_dataset
+DATASET_DIR=../seg_dataset_0
 
 LOG_DIR=${WORK_DIR}/0_log
 QUANT_DIR=${WORK_DIR}/1_quantize_model
@@ -109,7 +109,7 @@ COMP_LOG=${CNN}_compile.log
         --quantized_model_dir ../${QUANT_DIR}/${CNN} \
         --dataset_dir ../${DATASET_DIR} \
         --quant_mode calib \
-        --calib_num_img 500
+        --calib_num_img 2
 
     # fix test
     echo "----------------------------------------------------"
@@ -121,7 +121,7 @@ COMP_LOG=${CNN}_compile.log
         --quantized_model_dir ../${QUANT_DIR}/${CNN} \
         --dataset_dir ../${DATASET_DIR} \
         --quant_mode test \
-        --calib_num_img 500
+        --calib_num_img 2
     
     # deploy
     echo "------------------------------------------------------"
@@ -133,8 +133,9 @@ COMP_LOG=${CNN}_compile.log
         --quantized_model_dir ../${QUANT_DIR}/${CNN} \
         --dataset_dir ../${DATASET_DIR} \
         --quant_mode test \
-        --calib_num_img 500 \
+        --calib_num_img 2 \
         --deploy
+    cd ..
 }
 
 ##################################################################################
@@ -146,13 +147,12 @@ COMP_LOG=${CNN}_compile.log
     echo "##############################################################################"
     echo " "
     cd code
-    echo ../${PREDICT_DIR}/${CNN}
     python eval_quantized_model.py \
         --model_type ${MODEL_TYPE} \
-	    --float_model_file ../${MODEL_DIR}/${FLOAT_MODEL_FILENAME} \
+	--float_model_file ../${MODEL_DIR}/${FLOAT_MODEL_FILENAME} \
         --quantized_model_file ../${QUANT_DIR}/${CNN}/${QUANTIZED_MODEL_FILENAME} \
         --dataset_dir ../${DATASET_DIR} \
-        --eval_num_img 3000 \
+        --eval_num_img 2 \
         --save_images \
         --save_images_dir ../${PREDICT_DIR}/${CNN}
     cd ..
@@ -201,9 +201,11 @@ COMP_LOG=${CNN}_compile.log
 
 pip install randaugment
 pip install torchsummary
-
+# clean_dos2unix
 0_clean_and_make_directories
 1_quantize_model
 2_eval_quantized_model
 3_compile_vai_zcu102
 4_display_subgraphs
+
+

@@ -178,10 +178,10 @@ def main():
     q_test_results = np.array(q_test_results)
     q_test_results = np.mean(q_test_results)
     if args.model_type == "fsrcnn":
-        print("--------> Results on Test Dataset with Float Model:", PSNR(q_test_results))
+        print("--------> Results on Test Dataset with Quantized Model:", PSNR(q_test_results))
         print("--------> Drop: ", PSNR(test_results) - PSNR(q_test_results))
     elif args.model_type == "fcn8":
-        print("--------> Results on Test Dataset with Float Model:", q_test_results)
+        print("--------> Results on Test Dataset with Quantized Model:", q_test_results)
         print("--------> Drop: ", test_results - q_test_results)
     # ==========================================================================================
 
@@ -204,33 +204,45 @@ def main():
                 output_predict = model(input_images)
                 Y_pred_float.append(output_predict)
                 output_predict_q = q_model(input_images)
-                Y_pred_q.append(output_predict_q)        
+                Y_pred_q.append(output_predict_q)
                 X_test.append(input_images)
                 Y_test.append(output_label)
-        
-        torch.save(Y_pred_float, os.path.join(SAVING_DIR, "Y_pred_float.pt"))
-        torch.save(Y_pred_q, os.path.join(SAVING_DIR, "Y_pred_q.pt"))
-        torch.save(X_test, os.path.join(SAVING_DIR, "X_test.pt"))
-        torch.save(Y_test, os.path.join(SAVING_DIR, "Y_test.pt"))
 
+        Y_pred_float = torch.cat(Y_pred_float, dim=0)
+        Y_pred_q = torch.cat(Y_pred_q, dim=0)
+        Y_test = torch.cat(Y_test, dim=0)
+        X_test = torch.cat(X_test, dim=0)
 
-        print("[SR7 INFO] Saving Images...")
+        # torch.save(Y_pred_float, os.path.join(SAVING_DIR, "Y_pred_float.pt"))
+        # torch.save(Y_pred_q, os.path.join(SAVING_DIR, "Y_pred_q.pt"))
+        # torch.save(X_test, os.path.join(SAVING_DIR, "X_test.pt"))
+        # torch.save(Y_test, os.path.join(SAVING_DIR, "Y_test.pt"))
+
+        print("[SR7 INFO] Saving",len(dataset),"Images...")
         # Save in png format
-        for i in range(len(Y_pred_float)):
+        for i in range(len(dataset)):
             if args.model_type == "fcn8":
-                Y_pred_mask = dataset.masks_2_RGB(Y_pred_float[i][0]).numpy()
-                Y_pred_q_mask = dataset.masks_2_RGB(Y_pred_q[i][0]).numpy()
-                Y_test_mask = dataset.masks_2_RGB(Y_test[i][0]).numpy()
+                if i>=125:
+                    print(Y_pred_float[i])
+                print(Y_pred_float[i].cpu().shape, Y_pred_q[i].cpu().shape, Y_test[i].cpu().shape, X_test[i].cpu().shape)
+                float = dataset.masks_2_RGB(Y_pred_float[i].cpu()).numpy()
+                quant = dataset.masks_2_RGB(Y_pred_q[i].cpu()).numpy()
+                label = dataset.masks_2_RGB(Y_test[i].cpu()).numpy()
+                input = X_test[i].cpu().numpy().transpose(1, 2, 0) * 255
+            elif args.model_type == "fsrcnn":
+                float = Y_pred_float[i].cpu().numpy().transpose(1, 2, 0) * 255
+                quant = Y_pred_q[i].cpu().numpy().transpose(1, 2, 0) * 255
+                label = Y_test[i].cpu().numpy().transpose(1, 2, 0) * 255
+                input = X_test[i].cpu().numpy().transpose(1, 2, 0) * 255
                 
-            cv2.imwrite(os.path.join(FLOAT_DIR, f"float_{i}.png"), cv2.cvtColor(Y_pred_mask, cv2.COLOR_BGR2RGB))
-            cv2.imwrite(os.path.join(QUANT_DIR, f"quant_{i}.png"), cv2.cvtColor(Y_pred_q_mask, cv2.COLOR_BGR2RGB))
-            cv2.imwrite(os.path.join(LABEL_DIR, f"label_{i}.png"), cv2.cvtColor(Y_test_mask, cv2.COLOR_BGR2RGB))
-            cv2.imwrite(os.path.join(INPUT_DIR, f"input_{i}.png"), cv2.cvtColor(X_test[i][0].cpu().numpy().transpose(1, 2, 0) * 255, cv2.COLOR_BGR2RGB))
+            cv2.imwrite(os.path.join(FLOAT_DIR, f"float_{i}.png"), cv2.cvtColor(float, cv2.COLOR_BGR2RGB))
+            cv2.imwrite(os.path.join(QUANT_DIR, f"quant_{i}.png"), cv2.cvtColor(quant, cv2.COLOR_BGR2RGB))
+            cv2.imwrite(os.path.join(LABEL_DIR, f"label_{i}.png"), cv2.cvtColor(label, cv2.COLOR_BGR2RGB))
+            cv2.imwrite(os.path.join(INPUT_DIR, f"input_{i}.png"), cv2.cvtColor(input, cv2.COLOR_BGR2RGB))
 
         print("[SR7 INFO] Images saved in ", SAVING_DIR)
-# ==========================================================================================
-        
-print("[SR7 INFO] Evaluation done!\n")
+    # ==========================================================================================  
+    print("[SR7 INFO] Evaluation done!\n")
 
 # ==========================================================================================
 # END

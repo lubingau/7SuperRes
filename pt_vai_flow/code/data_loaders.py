@@ -52,8 +52,8 @@ class SegmentationDataset(Dataset):
         masks_names = sorted(os.listdir(masks_dir))
         if calib_num_img > len(imgs_names):
             calib_num_img = len(imgs_names)
-        imgs_names = imgs_names[:calib_num_img-1]
-        masks_names = masks_names[:calib_num_img-1]
+        imgs_names = imgs_names[:calib_num_img]
+        masks_names = masks_names[:calib_num_img]
         
         idx_choices = choices(range(0,len(imgs_names)), k=int(ratio*len(imgs_names)))
         
