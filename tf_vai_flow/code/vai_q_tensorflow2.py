@@ -16,7 +16,7 @@ def get_arguments():
     Returns:
       A list of parsed arguments.
     """
-    parser = argparse.ArgumentParser(description="Vitis AI TF2 Quantization")
+    parser = argparse.ArgumentParser(description="Vitis AI TF2 Quantization of ResNet18 trained on CIFAR10")
 
     # model config
     parser.add_argument("--float_model_file", type=str,

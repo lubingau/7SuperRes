@@ -17,12 +17,12 @@ def get_arguments():
     Returns:
       A list of parsed arguments.
     """
-    parser = argparse.ArgumentParser(description="Vitis AI TF2 Evaluation")
+    parser = argparse.ArgumentParser(description="Vitis AI TF2 Quantization of ResNet18 trained on CIFAR10")
 
-    # model path
+    # model config
     parser.add_argument("--float_model_file", type=str,
                         help="h5 floating point file path name")
-    # quantization path
+    # quantization config
     parser.add_argument("--quantized_model_file", type=str,
                         help="quantized model file path name ")
     # train images directory
@@ -152,8 +152,6 @@ if args.save_images:
         plt.imsave(os.path.join(QUANT_DIR, "quant_" + str(i) + ".png"), Y_pred[i])
         plt.imsave(os.path.join(GT_DIR, "gt_" + str(i) + ".png"), Y_test[i])
         plt.imsave(os.path.join(LR_DIR, "blr_" + str(i) + ".png"), X_test[i])
-    
-    print("[SR7 INFO] Images saved in ", SAVING_DIR)
 
 # ==========================================================================================
         
