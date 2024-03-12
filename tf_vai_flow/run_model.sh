@@ -26,7 +26,7 @@ TARGET_102=${WORK_DIR}/../target_zcu102
 # ADD YOUR TARGET BOARD HERE
 
 MODEL_DIR=${WORK_DIR}/../input_model
-DATASET_DIR=${WORK_DIR}/../../supres_dataset
+DATASET_DIR=${WORK_DIR}/../supres_dataset
 
 LOG_DIR=${WORK_DIR}/0_log
 QUANT_DIR=${WORK_DIR}/1_quantize_model
@@ -97,7 +97,7 @@ COMP_LOG=${CNN}_compile.log
     python eval_quantized_model.py \
 	    --float_model_file ../${MODEL_DIR}/${FLOAT_MODEL_FILENAME} \
         --quantized_model_file ../${QUANT_DIR}/${CNN}/${QUANTIZED_MODEL_FILENAME} \
-        --eval_num_img 1000 \
+        --eval_num_img 2000 \
         --save_images \
         --save_images_dir ../${PREDICT_DIR}/${CNN}
     cd ..
