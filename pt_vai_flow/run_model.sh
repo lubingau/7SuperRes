@@ -1,16 +1,9 @@
 #!/bin/sh
 
-# Copyright © 2023 Advanced Micro Devices, Inc. All rights reserved.
-# SPDX-License-Identifier: MIT
-
-## Author: Daniele Bagni, AMD/Xilinx Inc
-
-## date 10 Aug 2023
 
 # REMEMBER THAT $1 is the "main" routine
 # LOG_FILENAME=$2
 # MODEL_NAME=$3
-
 
 echo " "
 echo "==========================================================================="
