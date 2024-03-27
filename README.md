@@ -91,11 +91,12 @@ options:
 ```
 
 # How to train the segmentation model
+Download the [DeepGlobe Land Cover Classification Dataset](https://www.kaggle.com/datasets/balraj98/deepglobe-land-cover-classification-dataset)
+and put it in the `seg_dataset` folder.
 
 Our model is an FCN8 adapted from "*[Fully convolutional networks for semantic segmentation](https://arxiv.org/pdf/1411.4038.pdf)*".
 
-
-
+Please follow the `segmentation.ipynb` notebook to train the model.
 
 <br>
 
