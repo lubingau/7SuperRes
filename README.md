@@ -6,6 +6,13 @@ The SuperRes7 project is part of an Industrial Study Project (BEI) and a Projet 
 
 Once the image is super resolved, we will try to integrate a segmentation model in order to remove unnecessary areas, such as water and forests.
 
+# Results
+
+The final super-resolution application upscales an image from **14192x10640px** to an image of **28384x21280px** in **44.32s**, with the entire process executed on the ZCU102 (image patching, super-resolution model inference, image reconstruction), all while using less than 3GB of RAM.
+
+![results0](./doc/results_temps.png)
+![results0](./doc/results_img.png)
+
 
 # How to train the super-resolution model
 
